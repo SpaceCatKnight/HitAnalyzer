@@ -1,0 +1,15 @@
+<use name="CommonTools/UtilAlgos"/>
+<use name="PhysicsTools/UtilAlgos"/>
+<use name="FWCore/Framework"/>
+<use name="FWCore/PluginManager"/>
+<use name="FWCore/ParameterSet"/>
+<use name="DataFormats/TrackReco"/>
+<use name="DataFormats/JetReco"/>
+<use name="DataFormats/SiStripCluster"/>
+<use name="DataFormats/HepMCCandidate"/>
+<use name="DataFormats/VertexReco"/>
+<use name="CommonTools/UtilAlgos"/>
+<use name="Geometry/TrackerNumberingBuilder"/>
+<use name="Geometry/Records"/>
+<use name="Geometry/TrackerGeometryBuilder"/>
+<flags EDM_PLUGIN="1"/>
