@@ -40,7 +40,7 @@ process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(
         # 'file:/afs/cern.ch/work/t/thaarres/public/bTag_ntracks/CMSSW_9_2_1/src/btag_ntracks/TprimeBToTH_M-3000_Width-30p_LH_TuneCUETP8M2T4_14TeV-madgraph-pythia8.root'
         # 'root://cms-xrd-global.cern.ch//store/mc/RunIISpring15DR74/ZprimeToTT_M-2500_W-25_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/GEN-SIM-RECO/Asympt25nsReco_MCRUN2_74_V9-v1/10000/64461CF9-9176-E511-95F8-A0000420FE80.root'
-        'file:TT_TuneCUETP8M2T4_13TeV-powheg-pythia8_GEN-SIM-RECODEBUG_92X_upgrade2017_realistic_v10_ext1-v2.root'
+        'file:/afs/cern.ch/work/t/thaarres/public/TT_TuneCUETP8M2T4_13TeV-powheg-pythia8_GEN-SIM-RECODEBUG_92X_upgrade2017_realistic_v10_ext1-v2.root'
     )
 )
 process.demo = cms.EDAnalyzer('HitAnalyzer',
