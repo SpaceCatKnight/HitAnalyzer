@@ -46,8 +46,14 @@
 #include "DataFormats/SiPixelDetId/interface/PixelBarrelName.h"
 #include "DataFormats/SiPixelDetId/interface/PixelEndcapName.h"
 
+#define NEW_ID
+#ifdef NEW_ID
+#include "DataFormats/TrackerCommon/interface/TrackerTopology.h"
+#include "Geometry/Records/interface/IdealGeometryRecord.h"
+#else 
 #include "DataFormats/SiPixelDetId/interface/PXBDetId.h" 
 #include "DataFormats/SiPixelDetId/interface/PXFDetId.h" 
+#endif 
 
 
 #include "Geometry/TrackerGeometryBuilder/interface/PixelGeomDetUnit.h"
@@ -69,7 +75,7 @@
 
 class HitAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
    public:
-      explicit HitAnalyzer(const edm::ParameterSet&);
+      explicit HitAnalyzer(const edm::ParameterSet& conf);
       ~HitAnalyzer();
 
       static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
@@ -81,12 +87,18 @@ class HitAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
       virtual void endJob() override;
       void reset( void );
       
+      
+      edm::ParameterSet conf_;
+      edm::InputTag src_;
+      bool printLocal;
+      bool phase1_;
+       
       edm::EDGetTokenT< reco::GenParticleCollection>          genPtoken;
       edm::EDGetTokenT< reco::PFJetCollection >               ak4CHStoken;
       edm::EDGetTokenT< reco::PFJetCollection >               ak8CHStoken;
       edm::EDGetTokenT< edmNew::DetSetVector<SiPixelCluster>> clusterToken;
       edm::EDGetTokenT< reco::VertexCollection >              svToken;
-      edm::EDGetTokenT< reco::TrackCollection >               trackToken;
+      // edm::EDGetTokenT< reco::TrackCollection >               trackToken;
       edm::EDGetTokenT< reco::JetTagCollection >              csv2Token;
      
            //
@@ -96,31 +108,8 @@ class HitAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
       //     vector<reco::TemplatedSecondaryVertexTagInfo<reco::IPTagInfo<vector<edm::Ptr<reco::Candidate> >,reco::JetTagInfo>,reco::VertexCompositePtrCandidate> >    "pfInclusiveSecondaryVertexFinderCvsLTagInfos"   ""                "RECO"
       //     vector<reco::TemplatedSecondaryVertexTagInfo<reco::IPTagInfo<vector<edm::Ptr<reco::Candidate> >,reco::JetTagInfo>,reco::VertexCompositePtrCandidate> >    "pfInclusiveSecondaryVertexFinderTagInfos"   ""                "RECO"
       //     vector<reco::TemplatedSecondaryVertexTagInfo<reco::IPTagInfo<vector<edm::Ptr<reco::Candidate> >,reco::JetTagInfo>,reco::VertexCompositePtrCandidate> >    "pfSecondaryVertexTagInfos"   ""                "RECO"
-      //       vector<reco::PFCandidate>             "particleFlow"              ""                "RECO"
-      //         edm::ValueMap<float>                  "offlinePrimaryVertices"    ""                "RECO"
-      //           dm::AssociationVector<edm::RefToBaseProd<reco::Jet>,vector<float>,edm::RefToBase<reco::Jet>,unsigned int,edm::helper::AssociationIdenticalKeyReference>    "pfChargeBJetTags"          ""                "RECO"
-      //           edm::AssociationVector<edm::RefToBaseProd<reco::Jet>,vector<float>,edm::RefToBase<reco::Jet>,unsigned int,edm::helper::AssociationIdenticalKeyReference>    "pfCombinedCvsBJetTags"     ""                "RECO"
-      //           edm::AssociationVector<edm::RefToBaseProd<reco::Jet>,vector<float>,edm::RefToBase<reco::Jet>,unsigned int,edm::helper::AssociationIdenticalKeyReference>    "pfCombinedCvsLJetTags"     ""                "RECO"
-      //           edm::AssociationVector<edm::RefToBaseProd<reco::Jet>,vector<float>,edm::RefToBase<reco::Jet>,unsigned int,edm::helper::AssociationIdenticalKeyReference>    "pfCombinedInclusiveSecondaryVertexV2BJetTags"   ""                "RECO"
-      //           edm::AssociationVector<edm::RefToBaseProd<reco::Jet>,vector<float>,edm::RefToBase<reco::Jet>,unsigned int,edm::helper::AssociationIdenticalKeyReference>    "pfCombinedMVAV2BJetTags"   ""                "RECO"
-      //           edm::AssociationVector<edm::RefToBaseProd<reco::Jet>,vector<float>,edm::RefToBase<reco::Jet>,unsigned int,edm::helper::AssociationIdenticalKeyReference>    "pfCombinedSecondaryVertexV2BJetTags"   ""                "RECO"
-      //           edm::AssociationVector<edm::RefToBaseProd<reco::Jet>,vector<float>,edm::RefToBase<reco::Jet>,unsigned int,edm::helper::AssociationIdenticalKeyReference>    "pfGhostTrackBJetTags"      ""                "RECO"
-      //           edm::AssociationVector<edm::RefToBaseProd<reco::Jet>,vector<float>,edm::RefToBase<reco::Jet>,unsigned int,edm::helper::AssociationIdenticalKeyReference>    "pfJetBProbabilityBJetTags"   ""                "RECO"
-      //           edm::AssociationVector<edm::RefToBaseProd<reco::Jet>,vector<float>,edm::RefToBase<reco::Jet>,unsigned int,edm::helper::AssociationIdenticalKeyReference>    "pfJetProbabilityBJetTags"   ""                "RECO"
       //           edm::AssociationVector<edm::RefToBaseProd<reco::Jet>,vector<float>,edm::RefToBase<reco::Jet>,unsigned int,edm::helper::AssociationIdenticalKeyReference>    "pfSimpleInclusiveSecondaryVertexHighEffBJetTags"   ""                "RECO"
       //           edm::AssociationVector<edm::RefToBaseProd<reco::Jet>,vector<float>,edm::RefToBase<reco::Jet>,unsigned int,edm::helper::AssociationIdenticalKeyReference>    "pfSimpleSecondaryVertexHighEffBJetTags"   ""                "RECO"
-      //           edm::AssociationVector<edm::RefToBaseProd<reco::Jet>,vector<float>,edm::RefToBase<reco::Jet>,unsigned int,edm::helper::AssociationIdenticalKeyReference>    "pfTrackCountingHighEffBJetTags"   ""                "RECO"
-      //           edm::AssociationVector<edm::RefToBaseProd<reco::Jet>,vector<float>,edm::RefToBase<reco::Jet>,unsigned int,edm::helper::AssociationIdenticalKeyReference>    "softPFElectronBJetTags"    ""                "RECO"
-      //           edm::AssociationVector<edm::RefToBaseProd<reco::Jet>,vector<float>,edm::RefToBase<reco::Jet>,unsigned int,edm::helper::AssociationIdenticalKeyReference>    "softPFMuonBJetTags"        ""                "RECO"
-      //           edm::AssociationVector<edm::RefToBaseProd<reco::Jet>,vector<float>,edm::RefToBase<reco::Jet>,unsigned int,edm::helper::AssociationIdenticalKeyReference>    "pfDeepCMVAJetTags"         "probb"           "RECO"
-      //           edm::AssociationVector<edm::RefToBaseProd<reco::Jet>,vector<float>,edm::RefToBase<reco::Jet>,unsigned int,edm::helper::AssociationIdenticalKeyReference>    "pfDeepCSVJetTags"          "probb"           "RECO"
-      //           edm::AssociationVector<edm::RefToBaseProd<reco::Jet>,vector<float>,edm::RefToBase<reco::Jet>,unsigned int,edm::helper::AssociationIdenticalKeyReference>    "pfDeepCMVAJetTags"         "probbb"          "RECO"
-      //           edm::AssociationVector<edm::RefToBaseProd<reco::Jet>,vector<float>,edm::RefToBase<reco::Jet>,unsigned int,edm::helper::AssociationIdenticalKeyReference>    "pfDeepCSVJetTags"          "probbb"          "RECO"
-      //           edm::AssociationVector<edm::RefToBaseProd<reco::Jet>,vector<float>,edm::RefToBase<reco::Jet>,unsigned int,edm::helper::AssociationIdenticalKeyReference>    "pfDeepCMVAJetTags"         "probc"           "RECO"
-      //           edm::AssociationVector<edm::RefToBaseProd<reco::Jet>,vector<float>,edm::RefToBase<reco::Jet>,unsigned int,edm::helper::AssociationIdenticalKeyReference>    "pfDeepCSVJetTags"          "probc"           "RECO"
-      //           edm::AssociationVector<edm::RefToBaseProd<reco::Jet>,vector<float>,edm::RefToBase<reco::Jet>,unsigned int,edm::helper::AssociationIdenticalKeyReference>    "pfDeepCMVAJetTags"         "probcc"          "RECO"
-      //           edm::AssociationVector<edm::RefToBaseProd<reco::Jet>,vector<float>,edm::RefToBase<reco::Jet>,unsigned int,edm::helper::AssociationIdenticalKeyReference>    "pfDeepCMVAJetTags"         "probudsg"        "RECO"
-      //           edm::AssociationVector<edm::RefToBaseProd<reco::Jet>,vector<float>,edm::RefToBase<reco::Jet>,unsigned int,edm::helper::AssociationIdenticalKeyReference>    "pfDeepCSVJetTags"          "probudsg"        "RECO"
 
       // ----------member data ---------------------------
       
@@ -170,9 +159,12 @@ class HitAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
 //
 // constructors and destructor
 //
-HitAnalyzer::HitAnalyzer(const edm::ParameterSet& iConfig)
-
-{
+HitAnalyzer::HitAnalyzer(const edm::ParameterSet& conf)
+  : conf_(conf), src_(conf.getParameter<edm::InputTag>( "src" )) { 
+  
+    printLocal = conf.getUntrackedParameter<bool>("Verbosity",false);
+    phase1_ = conf.getUntrackedParameter<bool>("phase1",false);
+        
    //now do what ever initialization is needed
   edm::Service<TFileService> fs;
   tree = fs->make<TTree>( "tree", "tree" );
@@ -218,13 +210,13 @@ HitAnalyzer::HitAnalyzer(const edm::ParameterSet& iConfig)
    std::string labelSVs("inclusiveSecondaryVertices");
    std::string labelTracks("generalTracks");
    std::string labelCSV("pfCombinedSecondaryVertexV2BJetTags");
-   genPtoken      = consumes< reco::GenParticleCollection         >(edm::InputTag(labelgenP));
-   ak8CHStoken    = consumes< reco::PFJetCollection               >(edm::InputTag(labelAK8s));
-   ak4CHStoken    = consumes< reco::PFJetCollection               >(edm::InputTag(labelAK4s));
-   clusterToken   = consumes< edmNew::DetSetVector<SiPixelCluster>>(edm::InputTag(labelClusters));
-   svToken        = consumes< reco::VertexCollection              >(edm::InputTag(labelSVs));
-   trackToken     = consumes< reco::TrackCollection               >(edm::InputTag(labelTracks));
-   csv2Token      = consumes< reco::JetTagCollection              >(edm::InputTag(labelCSV));
+   genPtoken      = consumes<reco::GenParticleCollection         > (edm::InputTag(labelgenP));
+   ak8CHStoken    = consumes<reco::PFJetCollection               > (edm::InputTag(labelAK8s));
+   ak4CHStoken    = consumes<reco::PFJetCollection               > (edm::InputTag(labelAK4s));
+   clusterToken   = consumes<edmNew::DetSetVector<SiPixelCluster>> (src_);
+   svToken        = consumes<reco::VertexCollection              > (edm::InputTag(labelSVs));
+   csv2Token      = consumes<reco::JetTagCollection              > (edm::InputTag(labelCSV));
+   // trackToken     = consumes< reco::TrackCollection               >(edm::InputTag(labelTracks));
 
 }
 
@@ -254,24 +246,34 @@ void
   reset();
    
   // // Get event setup
-  // edm::ESHandle<TrackerGeometry> geom;
-  // iSetup.get<TrackerDigiGeometryRecord>().get( geom );
-  // const TrackerGeometry& theTracker(*geom);
+  edm::ESHandle<TrackerGeometry> geom;
+  iSetup.get<TrackerDigiGeometryRecord>().get( geom );
+  const TrackerGeometry& theTracker(*geom);
+  
+#ifdef NEW_ID
+  //Retrieve tracker topology from geometry
+  edm::ESHandle<TrackerTopology> tTopoH;
+  iSetup.get<TrackerTopologyRcd>().get(tTopoH);
+  const TrackerTopology *tTopo=tTopoH.product();
+#endif
+  
    
   // Get handles
   Handle<edmNew::DetSetVector<SiPixelCluster> > clusters ; iEvent.getByToken( clusterToken , clusters );
   Handle<reco::PFJetCollection                > ak8CHS   ; iEvent.getByToken( ak8CHStoken  , ak8CHS   );
+  Handle<reco::PFJetCollection                > ak4CHS   ; iEvent.getByToken( ak4CHStoken  , ak4CHS   );
   Handle<reco::GenParticleCollection          > genPs    ; iEvent.getByToken( genPtoken    , genPs    );
-  Handle<reco::JetTagCollection               > CSVs     ; iEvent.getByToken( csv2Token    , CSVs    );
-  const reco::JetTagCollection & bTags = *(CSVs.product());
+  Handle<reco::JetTagCollection               > CSVs     ; iEvent.getByToken( csv2Token    , CSVs     );
+  Handle<reco::VertexCollection               > SVs      ; iEvent.getByToken( svToken      , SVs      );
   
-   
+  
+  const reco::JetTagCollection & bTags = *(CSVs.product()); 
   // Loop over jets
   
-  for ( reco::PFJetCollection::const_iterator jet = ak8CHS->begin(); jet != ak8CHS->end(); ++jet ) {
+  for ( reco::PFJetCollection::const_iterator jet = ak4CHS->begin(); jet != ak4CHS->end(); ++jet ) {
     if (jet->pt()<200.) continue;
-    TLorentzVector fatJet;
-    fatJet.SetPtEtaPhiM(jet->pt(),jet->eta(),jet->phi(),jet->mass());
+    TLorentzVector TVjet;
+    TVjet.SetPtEtaPhiM(jet->pt(),jet->eta(),jet->phi(),jet->mass());
     
     double minDR = 99.;
     int pdgId   = 0; 
@@ -281,7 +283,7 @@ void
       if (gp->status()<20 || gp->status()>29) continue;
       TLorentzVector genP;
       genP.SetPtEtaPhiM(gp->pt(),gp->eta(),gp->phi(),gp->mass());
-      float dR = fatJet.DeltaR(genP);
+      float dR = TVjet.DeltaR(genP);
       if (dR < minDR ){
         minDR = dR;
         pdgId = gp->pdgId();
@@ -306,13 +308,13 @@ void
     genParticle_status.push_back(status);
     
     // b-tag infos
-    double match = 0.8;
+    double match = 0.4;
     double csv2 = -99.;
     for (unsigned int i = 0; i != bTags.size(); ++i) {
       if (bTags[i].first->pt()<170.) continue;
       TLorentzVector bTagJet;
       bTagJet.SetPtEtaPhiM(bTags[i].first->pt(),bTags[i].first->eta(),bTags[i].first->phi(),bTags[i].first->mass());
-      float dR = fatJet.DeltaR(bTagJet);
+      float dR = TVjet.DeltaR(bTagJet);
       if (dR > match ) continue;
         match = dR;
         csv2 = bTags[i].second; 
@@ -334,14 +336,31 @@ void
     DetId detId = DetId(detid);       // Get the Detid object
     unsigned int detType=detId.det(); // det type, pixel=1
     if(detType!=1) continue; // look only at pixels
+    unsigned int subid=detId.subdetId(); //subdetector type, pix barrel=1, forward=2
+    // Subdet id, pix barrel=1, forward=2
+    if(subid==2) {  // forward
+#ifdef NEW_ID
+      PixelEndcapName pen(detid,tTopo,phase1_);
+#else 
+      PXFDetId pdetId = PXFDetId(detid);       
+#endif
+    }
+    else if (subid==1) {  // barrel
+#ifdef NEW_ID
+      PixelBarrelName pbn(detid,tTopo,phase1_);
+#else      
+      PXBDetId pdetId = PXBDetId(detid);
+      PixelBarrelName pbn(pdetId);
+#endif
+    }
+
     numberOfDetUnits++;
-    unsigned int subid=detId.subdetId(); //subdetector type, barrel=1
     detUnit_detType.push_back(detType);
     detUnit_subdetId.push_back(subid);
     
-    // // // Get the geom-detector
-    // const PixelGeomDetUnit * theGeomDet = dynamic_cast<const PixelGeomDetUnit*> (theTracker.idToDet(detId) );
-    // const PixelTopology * topol = &(theGeomDet->specificTopology());
+    // Get the geom-detector
+    const PixelGeomDetUnit * theGeomDet = dynamic_cast<const PixelGeomDetUnit*> (theTracker.idToDet(detId) );
+    const PixelTopology * topol = &(theGeomDet->specificTopology());
     int numberOfClusters = 0;
     std::vector<double>  _cluster_x;
     std::vector<double>  _cluster_y;
@@ -353,28 +372,36 @@ void
     
     for ( edmNew::DetSet<SiPixelCluster>::const_iterator clustIt = detUnit->begin(); clustIt != detUnit->end(); ++clustIt ) {
       numberOfClusters++;
+
       
-      _cluster_x.push_back(clustIt->x());
-      _cluster_y.push_back(clustIt->x());
-      _cluster_globalz.push_back(clustIt->x());
-      _cluster_globalx.push_back(clustIt->x());
-      _cluster_globaly.push_back(clustIt->x());
-      _cluster_globalPhi.push_back(clustIt->x());
-      _cluster_globalR.push_back(clustIt->x());
-   
-    //   // get global position of the cluster
-    //   LocalPoint lp = topol->localPosition(MeasurementPoint(clustIt->x(),clustIt->y()));
-    //   // float lx = lp.x(); // local cluster position in cm
-    //   // float ly = lp.y();
-    //
-    //   GlobalPoint clustgp = theGeomDet->surface().toGlobal( lp );
-    //   double gZ = clustgp.z();  // global z
-    //   double gX = clustgp.x();
-    //   double gY = clustgp.y();
-    //   TVector3 v(gX,gY,gZ);
-    //   float gPhi = v.Phi(); // phi of the hit
-    //   float gR = v.Perp(); // r of the hit
-    //
+      // get global position of the cluster
+      int sizeX = clustIt->sizeX(); //x=row=rfi, 
+      int sizeY = clustIt->sizeY(); //y=col=z_global
+      float x = clustIt->x(); // row, cluster position in pitch units, as float (int+0.5);
+      float y = clustIt->y(); // column, analog average
+      LocalPoint lp = topol->localPosition(MeasurementPoint(x,y));
+      float lx = lp.x(); // local cluster position in cm
+      float ly = lp.y();
+
+      GlobalPoint clustgp = theGeomDet->surface().toGlobal( lp );
+      double gZ = clustgp.z();  // global z
+      double gX = clustgp.x();
+      double gY = clustgp.y();
+      TVector3 v(gX,gY,gZ);
+      float gPhi = v.Phi(); // phi of the hit
+      float gR = v.Perp(); // r of the hit
+      
+      
+      _cluster_x.push_back(lx);
+      _cluster_y.push_back(ly);
+      _cluster_globalz.push_back(gZ);
+      _cluster_globalx.push_back(gX);
+      _cluster_globaly.push_back(gY);
+      _cluster_globalPhi.push_back(gPhi);
+      _cluster_globalR.push_back(gR);
+      
+      
+
     }
   nClusters.push_back(numberOfClusters);
   cluster_x        .push_back(_cluster_x);
@@ -382,7 +409,7 @@ void
   cluster_globalz  .push_back(_cluster_globalz);
   cluster_globalx  .push_back(_cluster_globalx);
   cluster_globaly  .push_back(_cluster_globaly);
-  cluster_globalPhi.push_back(_cluster_globalPhi);  
+  cluster_globalPhi.push_back(_cluster_globalPhi);
   cluster_globalR  .push_back(_cluster_globalR);
     
     
