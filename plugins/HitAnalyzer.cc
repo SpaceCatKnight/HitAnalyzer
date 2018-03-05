@@ -74,77 +74,113 @@
 
 
 class HitAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
-   public:
-      explicit HitAnalyzer(const edm::ParameterSet& conf);
-      ~HitAnalyzer();
+public:
+  explicit HitAnalyzer(const edm::ParameterSet& conf);
+  ~HitAnalyzer();
 
-      static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
+  static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
 
 
-   private:
-      virtual void beginJob() override;
-      virtual void analyze(const edm::Event&, const edm::EventSetup&) override;
-      virtual void endJob() override;
-      void reset( void );
+private:
+  virtual void beginJob() override;
+  virtual void analyze(const edm::Event&, const edm::EventSetup&) override;
+  virtual void endJob() override;
+  void reset( void );
       
       
-      edm::ParameterSet conf_;
-      edm::InputTag src_;
-      bool printLocal;
-      bool phase1_;
+  edm::ParameterSet conf_;
+  edm::InputTag src_;
+  bool printLocal;
+  bool phase1_;
        
-      edm::EDGetTokenT< reco::GenParticleCollection>          genPtoken;
-      edm::EDGetTokenT< reco::PFJetCollection >               ak4CHStoken;
-      edm::EDGetTokenT< reco::PFJetCollection >               ak8CHStoken;
-      edm::EDGetTokenT< edmNew::DetSetVector<SiPixelCluster>> clusterToken;
-      edm::EDGetTokenT< reco::VertexCollection >              svToken;
-      // edm::EDGetTokenT< reco::TrackCollection >               trackToken;
-      edm::EDGetTokenT< reco::JetTagCollection >              csv2Token;
+  edm::EDGetTokenT< reco::GenParticleCollection>          genPtoken;
+  edm::EDGetTokenT< reco::PFJetCollection >               ak4CHStoken;
+  edm::EDGetTokenT< reco::PFJetCollection >               ak8CHStoken;
+  edm::EDGetTokenT< edmNew::DetSetVector<SiPixelCluster>> clusterToken;
+  edm::EDGetTokenT< reco::VertexCollection >              svToken;
+  // edm::EDGetTokenT< reco::TrackCollection >               trackToken;
+  edm::EDGetTokenT< reco::JetTagCollection >              csv2Token;
      
-           //
-      // vector<reco::Vertex>                  "inclusiveSecondaryVertices"   ""                "RECO"
-      //   vector<reco::TrackExtra>              "generalTracks"             ""                "RECO"
-      //     vector<reco::TemplatedSecondaryVertexTagInfo<reco::IPTagInfo<vector<edm::Ptr<reco::Candidate> >,reco::JetTagInfo>,reco::VertexCompositePtrCandidate> >    "pfGhostTrackVertexTagInfos"   ""                "RECO"
-      //     vector<reco::TemplatedSecondaryVertexTagInfo<reco::IPTagInfo<vector<edm::Ptr<reco::Candidate> >,reco::JetTagInfo>,reco::VertexCompositePtrCandidate> >    "pfInclusiveSecondaryVertexFinderCvsLTagInfos"   ""                "RECO"
-      //     vector<reco::TemplatedSecondaryVertexTagInfo<reco::IPTagInfo<vector<edm::Ptr<reco::Candidate> >,reco::JetTagInfo>,reco::VertexCompositePtrCandidate> >    "pfInclusiveSecondaryVertexFinderTagInfos"   ""                "RECO"
-      //     vector<reco::TemplatedSecondaryVertexTagInfo<reco::IPTagInfo<vector<edm::Ptr<reco::Candidate> >,reco::JetTagInfo>,reco::VertexCompositePtrCandidate> >    "pfSecondaryVertexTagInfos"   ""                "RECO"
-      //           edm::AssociationVector<edm::RefToBaseProd<reco::Jet>,vector<float>,edm::RefToBase<reco::Jet>,unsigned int,edm::helper::AssociationIdenticalKeyReference>    "pfSimpleInclusiveSecondaryVertexHighEffBJetTags"   ""                "RECO"
-      //           edm::AssociationVector<edm::RefToBaseProd<reco::Jet>,vector<float>,edm::RefToBase<reco::Jet>,unsigned int,edm::helper::AssociationIdenticalKeyReference>    "pfSimpleSecondaryVertexHighEffBJetTags"   ""                "RECO"
+  //
+  // vector<reco::Vertex>                  "inclusiveSecondaryVertices"   ""                "RECO"
+  //   vector<reco::TrackExtra>              "generalTracks"             ""                "RECO"
+  //     vector<reco::TemplatedSecondaryVertexTagInfo<reco::IPTagInfo<vector<edm::Ptr<reco::Candidate> >,reco::JetTagInfo>,reco::VertexCompositePtrCandidate> >    "pfGhostTrackVertexTagInfos"   ""                "RECO"
+  //     vector<reco::TemplatedSecondaryVertexTagInfo<reco::IPTagInfo<vector<edm::Ptr<reco::Candidate> >,reco::JetTagInfo>,reco::VertexCompositePtrCandidate> >    "pfInclusiveSecondaryVertexFinderCvsLTagInfos"   ""                "RECO"
+  //     vector<reco::TemplatedSecondaryVertexTagInfo<reco::IPTagInfo<vector<edm::Ptr<reco::Candidate> >,reco::JetTagInfo>,reco::VertexCompositePtrCandidate> >    "pfInclusiveSecondaryVertexFinderTagInfos"   ""                "RECO"
+  //     vector<reco::TemplatedSecondaryVertexTagInfo<reco::IPTagInfo<vector<edm::Ptr<reco::Candidate> >,reco::JetTagInfo>,reco::VertexCompositePtrCandidate> >    "pfSecondaryVertexTagInfos"   ""                "RECO"
+  //           edm::AssociationVector<edm::RefToBaseProd<reco::Jet>,vector<float>,edm::RefToBase<reco::Jet>,unsigned int,edm::helper::AssociationIdenticalKeyReference>    "pfSimpleInclusiveSecondaryVertexHighEffBJetTags"   ""                "RECO"
+  //           edm::AssociationVector<edm::RefToBaseProd<reco::Jet>,vector<float>,edm::RefToBase<reco::Jet>,unsigned int,edm::helper::AssociationIdenticalKeyReference>    "pfSimpleSecondaryVertexHighEffBJetTags"   ""                "RECO"
 
-      // ----------member data ---------------------------
+  // ----------member data ---------------------------
       
-       int                  nJets;
-       std::vector<double>  jet_pt;
-       std::vector<double>  jet_eta;
-       std::vector<double>  jet_phi;
-       std::vector<double>  jet_mass;
-       std::vector<int>     jet_pdgId;
-       std::vector<double>  jet_bTag;
-       std::vector<double>  dr_jetGen;
+  int                  nJets;
+  std::vector<double>  jet_pt;
+  std::vector<double>  jet_eta;
+  std::vector<double>  jet_phi;
+  std::vector<double>  jet_mass;
+  std::vector<int>     jet_pdgId;
+  std::vector<double>  jet_bTag;
+  std::vector<double>  dr_jetGen;
        
-       int                  nGenParticles;
-       std::vector<double>  genParticle_pt;
-       std::vector<double>  genParticle_eta;
-       std::vector<double>  genParticle_phi;
-       std::vector<double>  genParticle_mass;
-       std::vector<int>     genParticle_pdgId;
-       std::vector<int>     genParticle_status;
+  int                  nGenParticles;
+  std::vector<double>  genParticle_pt;
+  std::vector<double>  genParticle_eta;
+  std::vector<double>  genParticle_phi;
+  std::vector<double>  genParticle_mass;
+  std::vector<int>     genParticle_pdgId;
+  std::vector<int>     genParticle_status;
        
-       int                               nDetUnits;
-       std::vector<unsigned int >        detUnit_detType;
-       std::vector<unsigned int >        detUnit_subdetId;
+  int                          nDetUnits;
+  std::vector<unsigned int>    detUnit_detType;
+  std::vector<unsigned int>    detUnit_subdetId;
        
-       std::vector<int>                  nClusters;
-       std::vector<std::vector<double>>  cluster_x;
-       std::vector<std::vector<double>>  cluster_y;
-       std::vector<std::vector<double>>  cluster_globalz;
-       std::vector<std::vector<double>>  cluster_globalx;
-       std::vector<std::vector<double>>  cluster_globaly;
-       std::vector<std::vector<double>>  cluster_globalPhi;
-       std::vector<std::vector<double>>  cluster_globalR;
+  // barrel ids
+  std::vector< unsigned int>  detUnit_layerC;
+  std::vector< unsigned int>  detUnit_ladderC;
+  std::vector< unsigned int>  detUnit_zindex;
+  std::vector< int>           detUnit_shell ; // shell id // Shell { mO = 1, mI = 2 , pO =3 , pI =4 };
+  std::vector< int>           detUnit_sector; // 1-8
+  std::vector< int>           detUnit_ladder; // 1-22
+  std::vector< int>           detUnit_layer ; // 1-3
+  std::vector< int>           detUnit_module; // 1-4
+  std::vector< bool>          detUnit_half ; 
+
+  // Endcap ids
+  std::vector<unsigned int>   detUnit_disk;   //1,2,3
+  std::vector<unsigned int>   detUnit_blade;  //1-24
+  std::vector<unsigned int>   detUnit_moduleF; // plaquette 1,2,3,4
+  std::vector<unsigned int>   detUnit_side;   //size=1 for -z, 2 for +z
+  std::vector<unsigned int>   detUnit_panel;  //panel=1
        
        
-       TTree *tree;
+       
+       
+       
+       
+       
+       
+       
+       
+       
+       
+       
+       
+       
+       
+       
+       
+       
+  std::vector<int>                  nClusters;
+  std::vector<std::vector<double>>  cluster_x;
+  std::vector<std::vector<double>>  cluster_y;
+  std::vector<std::vector<double>>  cluster_globalz;
+  std::vector<std::vector<double>>  cluster_globalx;
+  std::vector<std::vector<double>>  cluster_globaly;
+  std::vector<std::vector<double>>  cluster_globalPhi;
+  std::vector<std::vector<double>>  cluster_globalR;
+       
+       
+  TTree *tree;
        
 };
 
@@ -160,12 +196,12 @@ class HitAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
 // constructors and destructor
 //
 HitAnalyzer::HitAnalyzer(const edm::ParameterSet& conf)
-  : conf_(conf), src_(conf.getParameter<edm::InputTag>( "src" )) { 
+: conf_(conf), src_(conf.getParameter<edm::InputTag>( "src" )) { 
   
-    printLocal = conf.getUntrackedParameter<bool>("Verbosity",false);
-    phase1_ = conf.getUntrackedParameter<bool>("phase1",false);
+  printLocal = conf.getUntrackedParameter<bool>("Verbosity",false);
+  phase1_ = conf.getUntrackedParameter<bool>("phase1",false);
         
-   //now do what ever initialization is needed
+  //now do what ever initialization is needed
   edm::Service<TFileService> fs;
   tree = fs->make<TTree>( "tree", "tree" );
   
@@ -190,6 +226,20 @@ HitAnalyzer::HitAnalyzer(const edm::ParameterSet& conf)
   tree->Branch( "nDetUnits"         ,&nDetUnits           );
   tree->Branch( "detUnit_detType"   ,&detUnit_detType     );
   tree->Branch( "detUnit_subdetId"  ,&detUnit_subdetId    );
+  tree->Branch( "detUnit_layerC"    ,&detUnit_layerC      );
+  tree->Branch( "detUnit_ladderC"   ,&detUnit_ladderC     );
+  tree->Branch( "detUnit_zindex"    ,&detUnit_zindex      );
+  tree->Branch( "detUnit_shell"     ,&detUnit_shell       ); 
+  tree->Branch( "detUnit_sector"    ,&detUnit_sector      ); 
+  tree->Branch( "detUnit_ladder"    ,&detUnit_ladder      ); 
+  tree->Branch( "detUnit_layer"     ,&detUnit_layer       ); 
+  tree->Branch( "detUnit_module"    ,&detUnit_module      ); 
+  tree->Branch( "detUnit_half"      ,&detUnit_half        ); 
+  tree->Branch( "detUnit_disk"      ,&detUnit_disk        );   
+  tree->Branch( "detUnit_blade"     ,&detUnit_blade       );  
+  tree->Branch( "detUnit_moduleF"   ,&detUnit_moduleF     );
+  tree->Branch( "detUnit_side"      ,&detUnit_side        );   
+  tree->Branch( "detUnit_panel"     ,&detUnit_panel       );  
   
   tree->Branch( "nClusters"         ,&nClusters           );
   tree->Branch( "cluster_x"         ,&cluster_x           );
@@ -203,20 +253,20 @@ HitAnalyzer::HitAnalyzer(const edm::ParameterSet& conf)
   
     
    
-   std::string labelgenP("genParticles");
-   std::string labelAK8s("ak8PFJetsCHS");
-   std::string labelAK4s("ak4PFJetsCHS");
-   std::string labelClusters("siPixelClusters");
-   std::string labelSVs("inclusiveSecondaryVertices");
-   std::string labelTracks("generalTracks");
-   std::string labelCSV("pfCombinedSecondaryVertexV2BJetTags");
-   genPtoken      = consumes<reco::GenParticleCollection         > (edm::InputTag(labelgenP));
-   ak8CHStoken    = consumes<reco::PFJetCollection               > (edm::InputTag(labelAK8s));
-   ak4CHStoken    = consumes<reco::PFJetCollection               > (edm::InputTag(labelAK4s));
-   clusterToken   = consumes<edmNew::DetSetVector<SiPixelCluster>> (src_);
-   svToken        = consumes<reco::VertexCollection              > (edm::InputTag(labelSVs));
-   csv2Token      = consumes<reco::JetTagCollection              > (edm::InputTag(labelCSV));
-   // trackToken     = consumes< reco::TrackCollection               >(edm::InputTag(labelTracks));
+  std::string labelgenP("genParticles");
+  std::string labelAK8s("ak8PFJetsCHS");
+  std::string labelAK4s("ak4PFJetsCHS");
+  std::string labelClusters("siPixelClusters");
+  std::string labelSVs("inclusiveSecondaryVertices");
+  std::string labelTracks("generalTracks");
+  std::string labelCSV("pfCombinedSecondaryVertexV2BJetTags");
+  genPtoken      = consumes<reco::GenParticleCollection         > (edm::InputTag(labelgenP));
+  ak8CHStoken    = consumes<reco::PFJetCollection               > (edm::InputTag(labelAK8s));
+  ak4CHStoken    = consumes<reco::PFJetCollection               > (edm::InputTag(labelAK4s));
+  clusterToken   = consumes<edmNew::DetSetVector<SiPixelCluster>> (src_);
+  svToken        = consumes<reco::VertexCollection              > (edm::InputTag(labelSVs));
+  csv2Token      = consumes<reco::JetTagCollection              > (edm::InputTag(labelCSV));
+  // trackToken     = consumes< reco::TrackCollection               >(edm::InputTag(labelTracks));
 
 }
 
@@ -224,8 +274,8 @@ HitAnalyzer::HitAnalyzer(const edm::ParameterSet& conf)
 HitAnalyzer::~HitAnalyzer()
 {
  
-   // do anything here that needs to be done at desctruction time
-   // (e.g. close files, deallocate resources etc.)
+  // do anything here that needs to be done at desctruction time
+  // (e.g. close files, deallocate resources etc.)
 
 }
 
@@ -316,17 +366,14 @@ void
       bTagJet.SetPtEtaPhiM(bTags[i].first->pt(),bTags[i].first->eta(),bTags[i].first->phi(),bTags[i].first->mass());
       float dR = TVjet.DeltaR(bTagJet);
       if (dR > match ) continue;
-        match = dR;
-        csv2 = bTags[i].second; 
+      match = dR;
+      csv2 = bTags[i].second; 
     }
     jet_bTag.push_back(csv2);
   }
   nGenParticles = genParticle_pt.size();
   nJets         = jet_pt.size();
-  
 
-  
-   
   // Get vector of detunit ids and loop over
   const edmNew::DetSetVector<SiPixelCluster>& input = *clusters;
   
@@ -338,29 +385,92 @@ void
     if(detType!=1) continue; // look only at pixels
     unsigned int subid=detId.subdetId(); //subdetector type, pix barrel=1, forward=2
     // Subdet id, pix barrel=1, forward=2
-    if(subid==2) {  // forward
-#ifdef NEW_ID
-      PixelEndcapName pen(detid,tTopo,phase1_);
-#else 
-      PXFDetId pdetId = PXFDetId(detid);       
-#endif
-    }
-    else if (subid==1) {  // barrel
-#ifdef NEW_ID
-      PixelBarrelName pbn(detid,tTopo,phase1_);
-#else      
-      PXBDetId pdetId = PXBDetId(detid);
-      PixelBarrelName pbn(pdetId);
-#endif
-    }
-
-    numberOfDetUnits++;
-    detUnit_detType.push_back(detType);
-    detUnit_subdetId.push_back(subid);
     
     // Get the geom-detector
     const PixelGeomDetUnit * theGeomDet = dynamic_cast<const PixelGeomDetUnit*> (theTracker.idToDet(detId) );
     const PixelTopology * topol = &(theGeomDet->specificTopology());
+    
+    
+    // barrel ids
+    unsigned int layerC=0;
+    unsigned int ladderC=0;
+    unsigned int zindex=0;
+    int shell  = 0; // shell id // Shell { mO = 1, mI = 2 , pO =3 , pI =4 };
+    int sector = 0; // 1-8
+    int ladder = 0; // 1-22
+    int layer  = 0; // 1-3
+    int module = 0; // 1-4
+    bool half  = false; // 
+
+    // Endcap ids
+    unsigned int disk=0; //1,2,3
+    unsigned int blade=0; //1-24
+    unsigned int moduleF=0; // plaquette 1,2,3,4
+    unsigned int side=0; //size=1 for -z, 2 for +z
+    unsigned int panel=0; //panel=1
+   
+   
+    if(subid==2) {  // forward
+#ifdef NEW_ID
+      disk=tTopo->pxfDisk(detid); //1,2,3
+      blade=tTopo->pxfBlade(detid); //1-24
+      zindex=tTopo->pxfModule(detid); //
+      side=tTopo->pxfSide(detid); //size=1 for -z, 2 for +z
+      panel=tTopo->pxfPanel(detid); //panel=1          
+      PixelEndcapName pen(detid,tTopo,phase1_);
+#else 
+      PXFDetId pdetId = PXFDetId(detid); 
+      disk=pdetId.disk();      //1,2,3
+      blade=pdetId.blade();    //1-24
+      moduleF=pdetId.module(); // plaquette
+      side=pdetId.side();      //size=1 for -z, 2 for +z
+      panel=pdetId.panel();    //panel=1            
+#endif
+    }
+    else if (subid==1) {  // barrel
+#ifdef NEW_ID
+      layerC=tTopo->pxbLayer(detid);
+      ladderC=tTopo->pxbLadder(detid);
+      zindex=tTopo->pxbModule(detid);
+      PixelBarrelName pbn(detid,tTopo,phase1_);
+#else      
+      PXBDetId pdetId = PXBDetId(detid);
+     
+      layerC=pdetId.layer();       // Barell layer = 1,2,3
+      ladderC=pdetId.ladder();     // Barrel ladder id 1-20,32,44.
+      zindex=pdetId.module();      // Barrel Z-index=1,8
+      PixelBarrelName pbn(pdetId); // Convert to online     
+#endif
+
+      PixelBarrelName::Shell sh = pbn.shell(); //enum
+      sector = pbn.sectorName();
+      ladder = pbn.ladderName();
+      layer  = pbn.layerName();
+      module = pbn.moduleName();
+      half  = pbn.isHalfModule();
+      shell = int(sh);
+    
+      if(shell==1 || shell==2) module = -module; // change the module sign for z<0
+      if(shell==1 || shell==3) ladder = -ladder; // change ladeer sign for Outer )x<0)
+    }
+    numberOfDetUnits++;
+    detUnit_detType.push_back(detType);
+    detUnit_subdetId.push_back(subid);  
+    detUnit_layerC.push_back( layerC);
+    detUnit_ladderC.push_back(ladderC);
+    detUnit_zindex.push_back( zindex);
+    detUnit_shell .push_back( shell ); 
+    detUnit_sector.push_back( sector); 
+    detUnit_ladder.push_back( ladder); 
+    detUnit_layer .push_back( layer ); 
+    detUnit_module.push_back( module); 
+    detUnit_half .push_back( half );  
+    detUnit_disk.push_back(disk);   
+    detUnit_blade.push_back(blade);  
+    detUnit_moduleF.push_back(moduleF);
+    detUnit_side.push_back(side);   
+    detUnit_panel.push_back(panel);  
+
     int numberOfClusters = 0;
     std::vector<double>  _cluster_x;
     std::vector<double>  _cluster_y;
@@ -373,7 +483,6 @@ void
     for ( edmNew::DetSet<SiPixelCluster>::const_iterator clustIt = detUnit->begin(); clustIt != detUnit->end(); ++clustIt ) {
       numberOfClusters++;
 
-      
       // get global position of the cluster
       int sizeX = clustIt->sizeX(); //x=row=rfi, 
       int sizeY = clustIt->sizeY(); //y=col=z_global
@@ -391,7 +500,6 @@ void
       float gPhi = v.Phi(); // phi of the hit
       float gR = v.Perp(); // r of the hit
       
-      
       _cluster_x.push_back(lx);
       _cluster_y.push_back(ly);
       _cluster_globalz.push_back(gZ);
@@ -399,20 +507,16 @@ void
       _cluster_globaly.push_back(gY);
       _cluster_globalPhi.push_back(gPhi);
       _cluster_globalR.push_back(gR);
-      
-      
 
     }
-  nClusters.push_back(numberOfClusters);
-  cluster_x        .push_back(_cluster_x);
-  cluster_y        .push_back(_cluster_y);
-  cluster_globalz  .push_back(_cluster_globalz);
-  cluster_globalx  .push_back(_cluster_globalx);
-  cluster_globaly  .push_back(_cluster_globaly);
-  cluster_globalPhi.push_back(_cluster_globalPhi);
-  cluster_globalR  .push_back(_cluster_globalR);
-    
-    
+    nClusters.push_back(numberOfClusters);
+    cluster_x        .push_back(_cluster_x);
+    cluster_y        .push_back(_cluster_y);
+    cluster_globalz  .push_back(_cluster_globalz);
+    cluster_globalx  .push_back(_cluster_globalx);
+    cluster_globaly  .push_back(_cluster_globaly);
+    cluster_globalPhi.push_back(_cluster_globalPhi);
+    cluster_globalR  .push_back(_cluster_globalR);
   }
   nDetUnits = numberOfDetUnits;
   
@@ -451,19 +555,35 @@ void HitAnalyzer::reset( void ){
   nDetUnits = 0.;
   detUnit_detType.clear();
   detUnit_subdetId.clear();
+  detUnit_layerC.clear();
+  detUnit_ladderC.clear();
+  detUnit_zindex.clear();
+  detUnit_shell .clear(); 
+  detUnit_sector.clear(); 
+  detUnit_ladder.clear(); 
+  detUnit_layer .clear(); 
+  detUnit_module.clear(); 
+  detUnit_half .clear(); 
+  detUnit_disk.clear();   
+  detUnit_blade.clear();  
+  detUnit_moduleF.clear();
+  detUnit_side.clear();   
+  detUnit_panel.clear();  
+  
+  
   
   
 }
 
 // ------------ method called once each job just before starting event loop  ------------
 void 
-HitAnalyzer::beginJob()
+  HitAnalyzer::beginJob()
 {
 }
 
 // ------------ method called once each job just after ending the event loop  ------------
 void 
-HitAnalyzer::endJob() 
+  HitAnalyzer::endJob() 
 {
 }
 
