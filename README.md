@@ -11,10 +11,8 @@ cmsenv
 export GITUSER=`git config user.github`
 echo "Your github username has been set to \"$GITUSER\""
 git clone git@github.com:${GITUSER}/HitAnalyzer.git
-git remote add MAIN git@github.com:thaarres/HitAnalyzer.git
-git fetch MAIN
-git checkout -b devbranch MAIN/master
 cd HitAnalyzer
+git remote add MAIN git@github.com:thaarres/HitAnalyzer.git
 scram b -j 12
 ```
 To run, change input file in config.py, then
