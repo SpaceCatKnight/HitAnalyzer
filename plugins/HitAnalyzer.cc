@@ -1,7 +1,7 @@
 
 // system include files
 #include <memory>
-
+#include <string> 
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/one/EDAnalyzer.h"
@@ -86,6 +86,7 @@ private:
   virtual void analyze(const edm::Event&, const edm::EventSetup&) override;
   virtual void endJob() override;
   void reset( void );
+  const reco::GenParticle* findMother(const reco::GenParticle *particle);
       
       
   edm::ParameterSet conf_;
@@ -98,6 +99,7 @@ private:
   edm::EDGetTokenT< reco::PFJetCollection >               ak8CHStoken;
   edm::EDGetTokenT< edmNew::DetSetVector<SiPixelCluster>> clusterToken;
   edm::EDGetTokenT< reco::VertexCollection >              svToken;
+  edm::EDGetTokenT< reco::VertexCollection >              pvToken;
   // edm::EDGetTokenT< reco::TrackCollection >               trackToken;
   edm::EDGetTokenT< reco::JetTagCollection >              csv2Token;
      
@@ -120,6 +122,15 @@ private:
   std::vector<double>  jet_mass;
   std::vector<int>     jet_pdgId;
   std::vector<double>  jet_bTag;
+  // std::vector<double>  jet_vx_x   ;
+  // std::vector<double>  jet_vx_y   ;
+  // std::vector<double>  jet_vx_z   ;
+  // std::vector<double>  jet_vx_eta ;
+  // std::vector<double>  jet_vx_phi ;
+  // std::vector<double>  jet_vx_r   ;
+  
+  
+  
   std::vector<double>  dr_jetGen;
        
   int                  nGenParticles;
@@ -128,51 +139,51 @@ private:
   std::vector<double>  genParticle_phi;
   std::vector<double>  genParticle_mass;
   std::vector<int>     genParticle_pdgId;
+  std::vector<int>     genParticle_mother_pdgId;
   std::vector<int>     genParticle_status;
+  std::vector<double>  genParticle_vx_x   ;
+  std::vector<double>  genParticle_vx_y   ;
+  std::vector<double>  genParticle_vx_z   ;
+  std::vector<double>  genParticle_vx_eta ;
+  std::vector<double>  genParticle_vx_phi ;
+  std::vector<double>  genParticle_vx_r   ;
+  
        
   int                          nDetUnits;
-  std::vector<unsigned int>    detUnit_detType;
+  // std::vector<unsigned int>    detUnit_detType;
   std::vector<unsigned int>    detUnit_subdetId;
        
   // barrel ids
-  std::vector< unsigned int>  detUnit_layerC;
-  std::vector< unsigned int>  detUnit_ladderC;
-  std::vector< unsigned int>  detUnit_zindex;
-  std::vector< int>           detUnit_shell ; // shell id // Shell { mO = 1, mI = 2 , pO =3 , pI =4 };
-  std::vector< int>           detUnit_sector; // 1-8
-  std::vector< int>           detUnit_ladder; // 1-22
+  // std::vector< unsigned int>  detUnit_layerC;
+ //  std::vector< unsigned int>  detUnit_ladderC;
+ //  std::vector< unsigned int>  detUnit_zindex;
+ //  std::vector< int>           detUnit_shell ; // shell id // Shell { mO = 1, mI = 2 , pO =3 , pI =4 };
+ //  std::vector< int>           detUnit_sector; // 1-8
+  // std::vector< int>           detUnit_ladder; // 1-22
   std::vector< int>           detUnit_layer ; // 1-3
-  std::vector< int>           detUnit_module; // 1-4
-  std::vector< bool>          detUnit_half ; 
+  // std::vector< int>           detUnit_module; // 1-4
+  // std::vector< bool>          detUnit_half ;
 
   // Endcap ids
   std::vector<unsigned int>   detUnit_disk;   //1,2,3
-  std::vector<unsigned int>   detUnit_blade;  //1-24
-  std::vector<unsigned int>   detUnit_moduleF; // plaquette 1,2,3,4
+  // std::vector<unsigned int>   detUnit_blade;  //1-24
+  // std::vector<unsigned int>   detUnit_moduleF; // plaquette 1,2,3,4
   std::vector<unsigned int>   detUnit_side;   //size=1 for -z, 2 for +z
-  std::vector<unsigned int>   detUnit_panel;  //panel=1
-       
-       
-       
-       
-       
-       
-       
-       
-       
-       
-       
-       
-       
-       
-       
-       
-       
-       
+  // std::vector<unsigned int>   detUnit_panel;  //panel=1
+  
+   std::vector< double >           detUnit_X     ;
+   std::vector< double >           detUnit_Y     ;
+   std::vector< double >           detUnit_Z     ;
+   std::vector< double >           detUnit_R     ;
+   std::vector< double >           detUnit_Phi   ;
+   
+   
+   
+   
        
   std::vector<int>                  nClusters;
-  std::vector<std::vector<double>>  cluster_x;
-  std::vector<std::vector<double>>  cluster_y;
+  std::vector<std::vector<double>>  cluster_sizex;
+  std::vector<std::vector<double>>  cluster_sizey;
   std::vector<std::vector<double>>  cluster_globalz;
   std::vector<std::vector<double>>  cluster_globalx;
   std::vector<std::vector<double>>  cluster_globaly;
@@ -210,10 +221,18 @@ HitAnalyzer::HitAnalyzer(const edm::ParameterSet& conf)
   tree->Branch( "jet_eta"           , &jet_eta );
   tree->Branch( "jet_phi"           , &jet_phi );
   tree->Branch( "jet_mass"          , &jet_mass );
-  tree->Branch( "jet_pdgId"         , &jet_pdgId );
+  // tree->Branch( "jet_pdgId"         , &jet_pdgId );
   tree->Branch( "jet_bTag"          , &jet_bTag );
+  // tree->Branch( "jet_vx_x"  , &jet_vx_x   );
+  // tree->Branch( "jet_vx_y"  , &jet_vx_y   );
+  // tree->Branch( "jet_vx_z"  , &jet_vx_z   );
+  // tree->Branch( "jet_vx_eta", &jet_vx_eta );
+  // tree->Branch( "jet_vx_phi", &jet_vx_phi );
+  // tree->Branch( "jet_vx_r"  , &jet_vx_r   );
   
-  tree->Branch( "dr_jetGen"         , &dr_jetGen );
+  
+  
+  // tree->Branch( "dr_jetGen"         , &dr_jetGen );
   
   tree->Branch( "nGenParticles"     , &nGenParticles );
   tree->Branch( "genParticle_pt"    , &genParticle_pt );
@@ -221,29 +240,49 @@ HitAnalyzer::HitAnalyzer(const edm::ParameterSet& conf)
   tree->Branch( "genParticle_phi"   , &genParticle_phi );
   tree->Branch( "genParticle_mass"  , &genParticle_mass );
   tree->Branch( "genParticle_pdgId" , &genParticle_pdgId );
+  tree->Branch( "genParticle_mother_pdgId" , &genParticle_mother_pdgId );
   tree->Branch( "genParticle_status", &genParticle_status );
+  tree->Branch( "genParticle_vx_x"   , &genParticle_vx_x   );
+  tree->Branch( "genParticle_vx_y"   , &genParticle_vx_y   );
+  tree->Branch( "genParticle_vx_z"   , &genParticle_vx_z   );
+  tree->Branch( "genParticle_vx_eta" , &genParticle_vx_eta );
+  tree->Branch( "genParticle_vx_phi" , &genParticle_vx_phi );
+  tree->Branch( "genParticle_vx_r"   , &genParticle_vx_r   );
+  
+  
+  
+  
+  
   
   tree->Branch( "nDetUnits"         ,&nDetUnits           );
-  tree->Branch( "detUnit_detType"   ,&detUnit_detType     );
+  // tree->Branch( "detUnit_detType"   ,&detUnit_detType     );
   tree->Branch( "detUnit_subdetId"  ,&detUnit_subdetId    );
-  tree->Branch( "detUnit_layerC"    ,&detUnit_layerC      );
-  tree->Branch( "detUnit_ladderC"   ,&detUnit_ladderC     );
-  tree->Branch( "detUnit_zindex"    ,&detUnit_zindex      );
-  tree->Branch( "detUnit_shell"     ,&detUnit_shell       ); 
-  tree->Branch( "detUnit_sector"    ,&detUnit_sector      ); 
-  tree->Branch( "detUnit_ladder"    ,&detUnit_ladder      ); 
+  // tree->Branch( "detUnit_layerC"    ,&detUnit_layerC      );
+  // tree->Branch( "detUnit_ladderC"   ,&detUnit_ladderC     );
+  // tree->Branch( "detUnit_zindex"    ,&detUnit_zindex      );
+  // tree->Branch( "detUnit_shell"     ,&detUnit_shell       );
+  // tree->Branch( "detUnit_sector"    ,&detUnit_sector      );
+  // tree->Branch( "detUnit_ladder"    ,&detUnit_ladder      );
   tree->Branch( "detUnit_layer"     ,&detUnit_layer       ); 
-  tree->Branch( "detUnit_module"    ,&detUnit_module      ); 
-  tree->Branch( "detUnit_half"      ,&detUnit_half        ); 
+  // tree->Branch( "detUnit_module"    ,&detUnit_module      );
+  // tree->Branch( "detUnit_half"      ,&detUnit_half        );
   tree->Branch( "detUnit_disk"      ,&detUnit_disk        );   
-  tree->Branch( "detUnit_blade"     ,&detUnit_blade       );  
-  tree->Branch( "detUnit_moduleF"   ,&detUnit_moduleF     );
-  tree->Branch( "detUnit_side"      ,&detUnit_side        );   
-  tree->Branch( "detUnit_panel"     ,&detUnit_panel       );  
+  // tree->Branch( "detUnit_blade"     ,&detUnit_blade       );
+  // tree->Branch( "detUnit_moduleF"   ,&detUnit_moduleF     );
+  tree->Branch( "detUnit_side"      ,&detUnit_side        );
+  // tree->Branch( "detUnit_panel"     ,&detUnit_panel       );
+  
+  tree->Branch( "detUnit_X"   ,&detUnit_X                   );
+  tree->Branch( "detUnit_Y"   ,&detUnit_Y                   );
+  tree->Branch( "detUnit_Z"   ,&detUnit_Z                   );
+  tree->Branch( "detUnit_R"   ,&detUnit_R                   );
+  tree->Branch( "detUnit_Phi" ,&detUnit_Phi                 );
+  
+  
   
   tree->Branch( "nClusters"         ,&nClusters           );
-  tree->Branch( "cluster_x"         ,&cluster_x           );
-  tree->Branch( "cluster_y"         ,&cluster_y           );
+  tree->Branch( "cluster_sizex"     ,&cluster_sizex           );
+  tree->Branch( "cluster_sizey"     ,&cluster_sizey           );
   tree->Branch( "cluster_globalz"   ,&cluster_globalz     );
   tree->Branch( "cluster_globalx"   ,&cluster_globalx     );
   tree->Branch( "cluster_globaly"   ,&cluster_globaly     );
@@ -258,6 +297,7 @@ HitAnalyzer::HitAnalyzer(const edm::ParameterSet& conf)
   std::string labelAK4s("ak4PFJetsCHS");
   std::string labelClusters("siPixelClusters");
   std::string labelSVs("inclusiveSecondaryVertices");
+  std::string labelPVs("offlinePrimaryVertices");
   std::string labelTracks("generalTracks");
   std::string labelCSV("pfCombinedSecondaryVertexV2BJetTags");
   genPtoken      = consumes<reco::GenParticleCollection         > (edm::InputTag(labelgenP));
@@ -265,6 +305,7 @@ HitAnalyzer::HitAnalyzer(const edm::ParameterSet& conf)
   ak4CHStoken    = consumes<reco::PFJetCollection               > (edm::InputTag(labelAK4s));
   clusterToken   = consumes<edmNew::DetSetVector<SiPixelCluster>> (src_);
   svToken        = consumes<reco::VertexCollection              > (edm::InputTag(labelSVs));
+  pvToken        = consumes<reco::VertexCollection              > (edm::InputTag(labelPVs));
   csv2Token      = consumes<reco::JetTagCollection              > (edm::InputTag(labelCSV));
   // trackToken     = consumes< reco::TrackCollection               >(edm::InputTag(labelTracks));
 
@@ -288,8 +329,7 @@ HitAnalyzer::~HitAnalyzer()
 void
   HitAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
-  // std::cout<< " -- NEW EVENT --" << std::endl;
-    
+  
   using namespace edm;
    
   // Make sure vectors are clear
@@ -315,47 +355,18 @@ void
   Handle<reco::GenParticleCollection          > genPs    ; iEvent.getByToken( genPtoken    , genPs    );
   Handle<reco::JetTagCollection               > CSVs     ; iEvent.getByToken( csv2Token    , CSVs     );
   Handle<reco::VertexCollection               > SVs      ; iEvent.getByToken( svToken      , SVs      );
-  
-  
   const reco::JetTagCollection & bTags = *(CSVs.product()); 
-  // Loop over jets
   
+ 
+  // Loop over jets
   for ( reco::PFJetCollection::const_iterator jet = ak4CHS->begin(); jet != ak4CHS->end(); ++jet ) {
     if (jet->pt()<200.) continue;
     TLorentzVector TVjet;
     TVjet.SetPtEtaPhiM(jet->pt(),jet->eta(),jet->phi(),jet->mass());
-    
-    double minDR = 99.;
-    int pdgId   = 0; 
-    int status  = 0; 
-    TLorentzVector selectedGenP ;
-    for ( reco::GenParticleCollection::const_iterator gp = genPs->begin(); gp != genPs->end(); ++gp ) {
-      if (gp->status()<20 || gp->status()>29) continue;
-      TLorentzVector genP;
-      genP.SetPtEtaPhiM(gp->pt(),gp->eta(),gp->phi(),gp->mass());
-      float dR = TVjet.DeltaR(genP);
-      if (dR < minDR ){
-        minDR = dR;
-        pdgId = gp->pdgId();
-        status = gp->status();
-        selectedGenP = genP;
-      }
-    }
-    if (pdgId==0 || minDR > 0.8) continue;
-    
     jet_pt.push_back(jet->pt());
     jet_eta.push_back(jet->eta());
     jet_phi.push_back(jet->phi());
     jet_mass.push_back(jet->mass());
-    jet_pdgId.push_back(pdgId);
-    dr_jetGen.push_back(minDR);
-  
-    genParticle_pt  .push_back(selectedGenP.Pt());
-    genParticle_eta .push_back(selectedGenP.Eta());
-    genParticle_phi .push_back(selectedGenP.Phi());
-    genParticle_mass.push_back(selectedGenP.M());
-    genParticle_pdgId.push_back(pdgId);
-    genParticle_status.push_back(status);
     
     // b-tag infos
     double match = 0.4;
@@ -371,14 +382,82 @@ void
     }
     jet_bTag.push_back(csv2);
   }
-  nGenParticles = genParticle_pt.size();
   nJets         = jet_pt.size();
+  // jet_pdgId.push_back(pdgId);
+  // jet_vx_x   .push_back(jet->vertex().Coordinates().X());
+  // jet_vx_y   .push_back(jet->vertex().Coordinates().Y());
+  // jet_vx_z   .push_back(jet->vertex().Coordinates().Z());
+  // jet_vx_eta .push_back(jet->vertex().Coordinates().Eta());
+  // jet_vx_phi .push_back(jet->vertex().Coordinates().Phi());
+  // jet_vx_r   .push_back(jet->vertex().Coordinates().R());
+    
+    
+    
 
-  // Get vector of detunit ids and loop over
+
+
+    
+    // Loop opver gen particles
+    TLorentzVector selectedGenP ;
+    std::cout<< " " << std::endl;
+    for ( reco::GenParticleCollection::const_iterator gp = genPs->begin(); gp != genPs->end(); ++gp ) {
+      bool BMother = false;
+      int motherID = false;
+      for( unsigned int m=0; m<gp->numberOfMothers(); ++m ){
+        motherID =  gp->mother(m)->pdgId();
+        if ( fabs(gp->mother(m)->pdgId())>500 && fabs(gp->mother(m)->pdgId())<600) {
+          BMother = true;
+          break;
+        }
+      }
+      
+      std::string idString = std::to_string(fabs(gp->pdgId()));
+      if ( BMother == true || (gp->status()<30 && gp->status()>20) || (fabs(gp->pdgId())>500 && fabs(gp->pdgId())<600) 
+      || (idString.find("511") != std::string::npos)  || (idString.find("521") != std::string::npos)
+      || (idString.find("513") != std::string::npos)  || (idString.find("523") != std::string::npos)
+      || (idString.find("531") != std::string::npos)  || (idString.find("541") != std::string::npos)
+      || (idString.find("533") != std::string::npos)  || (idString.find("543") != std::string::npos) 
+      || (idString.find("551") != std::string::npos)  || (idString.find("553") != std::string::npos) 
+      || (idString.find("555") != std::string::npos)  || (idString.find("557") != std::string::npos) ){  
+   
+        TLorentzVector genP;
+        genP.SetPtEtaPhiM(gp->pt(),gp->eta(),gp->phi(),gp->mass());
+        int  pdgId = gp->pdgId();
+        int  status = gp->status();
+        double vx_x   = gp->vertex().Coordinates().X(); 
+        double vx_y   = gp->vertex().Coordinates().Y(); 
+        double vx_z   = gp->vertex().Coordinates().Z(); 
+        double vx_eta = gp->vertex().Coordinates().Eta(); 
+        double vx_phi = gp->vertex().Coordinates().Phi(); 
+        double vx_r   = gp->vertex().Coordinates().R(); 
+        
+        genParticle_pt  .push_back(genP.Pt());
+        genParticle_eta .push_back(genP.Eta());
+        genParticle_phi .push_back(genP.Phi());
+        genParticle_mass.push_back(genP.M());
+        genParticle_pdgId.push_back(pdgId);
+        genParticle_mother_pdgId.push_back(motherID);
+        genParticle_status.push_back(status);
+        genParticle_vx_x   .push_back(vx_x   );
+        genParticle_vx_y   .push_back(vx_y   );
+        genParticle_vx_z   .push_back(vx_z   );
+        genParticle_vx_eta .push_back(vx_eta );
+        genParticle_vx_phi .push_back(vx_phi );
+        genParticle_vx_r   .push_back(vx_r   );
+    }
+    }
+    
+
+  nGenParticles = genParticle_pt.size();
+  
+
+  // Get vector of detunit ids and loop
   const edmNew::DetSetVector<SiPixelCluster>& input = *clusters;
   
   int numberOfDetUnits = 0;
+  
   for ( edmNew::DetSetVector<SiPixelCluster>::const_iterator detUnit = input.begin(); detUnit != input.end(); ++detUnit ) {
+    if (detUnit->size()<1) continue;
     unsigned int detid = detUnit->detId();
     DetId detId = DetId(detid);       // Get the Detid object
     unsigned int detType=detId.det(); // det type, pixel=1
@@ -389,97 +468,84 @@ void
     // Get the geom-detector
     const PixelGeomDetUnit * theGeomDet = dynamic_cast<const PixelGeomDetUnit*> (theTracker.idToDet(detId) );
     const PixelTopology * topol = &(theGeomDet->specificTopology());
-    
-    
+    double detX = theGeomDet->surface().position().x();
+    double detY = theGeomDet->surface().position().y();
+    double detZ = theGeomDet->surface().position().z();
+    double detR = theGeomDet->surface().position().perp();
+    double detPhi = theGeomDet->surface().position().phi();
     // barrel ids
-    unsigned int layerC=0;
-    unsigned int ladderC=0;
-    unsigned int zindex=0;
-    int shell  = 0; // shell id // Shell { mO = 1, mI = 2 , pO =3 , pI =4 };
-    int sector = 0; // 1-8
-    int ladder = 0; // 1-22
+    // unsigned int layerC=0;
+    // unsigned int ladderC=0;
+    // unsigned int zindex=0;
+    // int shell  = 0; // shell id // Shell { mO = 1, mI = 2 , pO =3 , pI =4 };
+    // int sector = 0; // 1-8
+    // int ladder = 0; // 1-22
     int layer  = 0; // 1-3
-    int module = 0; // 1-4
-    bool half  = false; // 
+    // int module = 0; // 1-4
+    // bool half  = false; //
 
     // Endcap ids
     unsigned int disk=0; //1,2,3
-    unsigned int blade=0; //1-24
-    unsigned int moduleF=0; // plaquette 1,2,3,4
+    // unsigned int blade=0; //1-24
+    // unsigned int moduleF=0; // plaquette 1,2,3,4
     unsigned int side=0; //size=1 for -z, 2 for +z
-    unsigned int panel=0; //panel=1
+    // unsigned int panel=0; //panel=1
    
    
     if(subid==2) {  // forward
 #ifdef NEW_ID
       disk=tTopo->pxfDisk(detid); //1,2,3
-      blade=tTopo->pxfBlade(detid); //1-24
-      zindex=tTopo->pxfModule(detid); //
+      // blade=tTopo->pxfBlade(detid); //1-24
+      // zindex=tTopo->pxfModule(detid); //
       side=tTopo->pxfSide(detid); //size=1 for -z, 2 for +z
-      panel=tTopo->pxfPanel(detid); //panel=1          
+      // panel=tTopo->pxfPanel(detid); //panel=1
       PixelEndcapName pen(detid,tTopo,phase1_);
 #else 
       PXFDetId pdetId = PXFDetId(detid); 
       disk=pdetId.disk();      //1,2,3
-      blade=pdetId.blade();    //1-24
-      moduleF=pdetId.module(); // plaquette
+      // blade=pdetId.blade();    //1-24
+      // moduleF=pdetId.module(); // plaquette
       side=pdetId.side();      //size=1 for -z, 2 for +z
-      panel=pdetId.panel();    //panel=1            
+      // panel=pdetId.panel();    //panel=1
 #endif
     }
     else if (subid==1) {  // barrel
 #ifdef NEW_ID
-      layerC=tTopo->pxbLayer(detid);
-      ladderC=tTopo->pxbLadder(detid);
-      zindex=tTopo->pxbModule(detid);
+      // layerC=tTopo->pxbLayer(detid);
+      // ladderC=tTopo->pxbLadder(detid);
+      // zindex=tTopo->pxbModule(detid);
       PixelBarrelName pbn(detid,tTopo,phase1_);
 #else      
       PXBDetId pdetId = PXBDetId(detid);
      
-      layerC=pdetId.layer();       // Barell layer = 1,2,3
-      ladderC=pdetId.ladder();     // Barrel ladder id 1-20,32,44.
-      zindex=pdetId.module();      // Barrel Z-index=1,8
+      // layerC=pdetId.layer();       // Barell layer = 1,2,3
+      // ladderC=pdetId.ladder();     // Barrel ladder id 1-20,32,44.
+      // zindex=pdetId.module();      // Barrel Z-index=1,8
       PixelBarrelName pbn(pdetId); // Convert to online     
 #endif
 
-      PixelBarrelName::Shell sh = pbn.shell(); //enum
-      sector = pbn.sectorName();
-      ladder = pbn.ladderName();
+      // PixelBarrelName::Shell sh = pbn.shell(); //enum
+      // sector = pbn.sectorName();
+      // ladder = pbn.ladderName();
       layer  = pbn.layerName();
-      module = pbn.moduleName();
-      half  = pbn.isHalfModule();
-      shell = int(sh);
+      // module = pbn.moduleName();
+      // half  = pbn.isHalfModule();
+      // shell = int(sh);
     
-      if(shell==1 || shell==2) module = -module; // change the module sign for z<0
-      if(shell==1 || shell==3) ladder = -ladder; // change ladeer sign for Outer )x<0)
+      // if(shell==1 || shell==2) module = -module; // change the module sign for z<0
+      // if(shell==1 || shell==3) ladder = -ladder; // change ladeer sign for Outer )x<0)
     }
-    numberOfDetUnits++;
-    detUnit_detType.push_back(detType);
-    detUnit_subdetId.push_back(subid);  
-    detUnit_layerC.push_back( layerC);
-    detUnit_ladderC.push_back(ladderC);
-    detUnit_zindex.push_back( zindex);
-    detUnit_shell .push_back( shell ); 
-    detUnit_sector.push_back( sector); 
-    detUnit_ladder.push_back( ladder); 
-    detUnit_layer .push_back( layer ); 
-    detUnit_module.push_back( module); 
-    detUnit_half .push_back( half );  
-    detUnit_disk.push_back(disk);   
-    detUnit_blade.push_back(blade);  
-    detUnit_moduleF.push_back(moduleF);
-    detUnit_side.push_back(side);   
-    detUnit_panel.push_back(panel);  
+    
 
-    int numberOfClusters = 0;
-    std::vector<double>  _cluster_x;
-    std::vector<double>  _cluster_y;
+    
+    std::vector<double>  _cluster_sizex;
+    std::vector<double>  _cluster_sizey;
     std::vector<double>  _cluster_globalz;
     std::vector<double>  _cluster_globalx;
     std::vector<double>  _cluster_globaly;
     std::vector<double>  _cluster_globalPhi;
     std::vector<double>  _cluster_globalR;
-    
+    int numberOfClusters = 0;
     for ( edmNew::DetSet<SiPixelCluster>::const_iterator clustIt = detUnit->begin(); clustIt != detUnit->end(); ++clustIt ) {
       numberOfClusters++;
 
@@ -489,8 +555,8 @@ void
       float x = clustIt->x(); // row, cluster position in pitch units, as float (int+0.5);
       float y = clustIt->y(); // column, analog average
       LocalPoint lp = topol->localPosition(MeasurementPoint(x,y));
-      float lx = lp.x(); // local cluster position in cm
-      float ly = lp.y();
+      // float lx = lp.x(); // local cluster position in cm
+      // float ly = lp.y();
 
       GlobalPoint clustgp = theGeomDet->surface().toGlobal( lp );
       double gZ = clustgp.z();  // global z
@@ -500,8 +566,8 @@ void
       float gPhi = v.Phi(); // phi of the hit
       float gR = v.Perp(); // r of the hit
       
-      _cluster_x.push_back(lx);
-      _cluster_y.push_back(ly);
+      _cluster_sizex.push_back(sizeX);
+      _cluster_sizey.push_back(sizeY);
       _cluster_globalz.push_back(gZ);
       _cluster_globalx.push_back(gX);
       _cluster_globaly.push_back(gY);
@@ -509,14 +575,40 @@ void
       _cluster_globalR.push_back(gR);
 
     }
+    if( numberOfClusters < 1.) continue;
+    
+    // detUnit_detType.push_back(detType);
+    detUnit_subdetId.push_back(subid);  
+    // detUnit_layerC.push_back( layerC);
+//     detUnit_ladderC.push_back(ladderC);
+//     detUnit_zindex.push_back( zindex);
+//     detUnit_shell .push_back( shell );
+//     detUnit_sector.push_back( sector);
+//     detUnit_ladder.push_back( ladder);
+    detUnit_layer .push_back( layer ); 
+    // detUnit_module.push_back( module);
+  //   detUnit_half .push_back( half );
+    detUnit_disk.push_back(disk);   
+    // detUnit_blade.push_back(blade);
+//     detUnit_moduleF.push_back(moduleF);
+    detUnit_side.push_back(side);   
+    // detUnit_panel.push_back(panel);
+    detUnit_X         .push_back(detX     );
+    detUnit_Y         .push_back(detY     );
+    detUnit_Z         .push_back(detZ     );
+    detUnit_R         .push_back(detR     );
+    detUnit_Phi       .push_back(detPhi   );
+    
     nClusters.push_back(numberOfClusters);
-    cluster_x        .push_back(_cluster_x);
-    cluster_y        .push_back(_cluster_y);
+    cluster_sizex    .push_back(_cluster_sizex);
+    cluster_sizey    .push_back(_cluster_sizey);
     cluster_globalz  .push_back(_cluster_globalz);
     cluster_globalx  .push_back(_cluster_globalx);
     cluster_globaly  .push_back(_cluster_globaly);
     cluster_globalPhi.push_back(_cluster_globalPhi);
     cluster_globalR  .push_back(_cluster_globalR);
+    
+    numberOfDetUnits++;
   }
   nDetUnits = numberOfDetUnits;
   
@@ -533,6 +625,12 @@ void HitAnalyzer::reset( void ){
   jet_mass.clear();
   jet_pdgId.clear();
   jet_bTag.clear();
+  // jet_vx_x  .clear();
+  // jet_vx_y  .clear();
+  // jet_vx_z  .clear();
+  // jet_vx_eta.clear();
+  // jet_vx_phi.clear();
+  // jet_vx_r  .clear();
   dr_jetGen.clear();
   
   nGenParticles = 0;
@@ -541,11 +639,19 @@ void HitAnalyzer::reset( void ){
   genParticle_phi.clear();
   genParticle_mass.clear();
   genParticle_pdgId.clear();
+  genParticle_mother_pdgId.clear();
   genParticle_status.clear();
+  genParticle_vx_x  .clear(); 
+  genParticle_vx_y  .clear(); 
+  genParticle_vx_z  .clear(); 
+  genParticle_vx_eta.clear(); 
+  genParticle_vx_phi.clear(); 
+  genParticle_vx_r  .clear(); 
+  
   
   nClusters.clear();
-  cluster_x.clear();
-  cluster_y.clear();
+  cluster_sizex.clear();
+  cluster_sizey.clear();
   cluster_globalz.clear();
   cluster_globalx.clear();
   cluster_globaly.clear();
@@ -553,28 +659,47 @@ void HitAnalyzer::reset( void ){
   cluster_globalR.clear();
   
   nDetUnits = 0.;
-  detUnit_detType.clear();
+  // detUnit_detType.clear();
   detUnit_subdetId.clear();
-  detUnit_layerC.clear();
-  detUnit_ladderC.clear();
-  detUnit_zindex.clear();
-  detUnit_shell .clear(); 
-  detUnit_sector.clear(); 
-  detUnit_ladder.clear(); 
-  detUnit_layer .clear(); 
-  detUnit_module.clear(); 
-  detUnit_half .clear(); 
-  detUnit_disk.clear();   
-  detUnit_blade.clear();  
-  detUnit_moduleF.clear();
-  detUnit_side.clear();   
-  detUnit_panel.clear();  
-  
-  
-  
+  // detUnit_layerC.clear();
+  // detUnit_ladderC.clear();
+  // detUnit_zindex.clear();
+  // detUnit_shell .clear();
+  // detUnit_sector.clear();
+  // detUnit_ladder.clear();
+  detUnit_layer .clear();
+  // detUnit_module.clear();
+  // detUnit_half .clear();
+  detUnit_disk.clear();
+  // detUnit_blade.clear();
+  // detUnit_moduleF.clear();
+  detUnit_side.clear();
+  // detUnit_panel.clear();
+  detUnit_layer .clear();
+  detUnit_X     .clear();
+  detUnit_Y     .clear();
+  detUnit_Z     .clear();
+  detUnit_R     .clear();
+  detUnit_Phi   .clear();
   
 }
 
+// Find mother
+const reco::GenParticle *HitAnalyzer::findMother(const reco::GenParticle *particle) {
+      const reco::GenParticle *tmp = particle;
+      int pdgId = particle->pdgId();
+      while(const reco::GenParticle *mother = dynamic_cast<const reco::GenParticle *>(tmp->mother())) {
+        if(mother->pdgId() == pdgId) {
+          tmp = mother;
+          continue;
+        }
+        return mother;
+      }
+      return 0;
+    }
+
+    
+              
 // ------------ method called once each job just before starting event loop  ------------
 void 
   HitAnalyzer::beginJob()

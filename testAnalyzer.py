@@ -1,7 +1,7 @@
 import ROOT as rt
  
 # open tree file
-file = rt.TFile("/afs/cern.ch/work/t/thaarres/public/bTag_ntracks/CMSSW_9_2_1/src/btag_ntracks/flatTuple.root",'READ')
+file = rt.TFile("TT1.root",'READ')
 tree = file.Get("demo/tree")
 
 N = tree.GetEntries()

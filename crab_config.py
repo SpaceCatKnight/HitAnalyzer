@@ -15,6 +15,6 @@ config.Data.splitting = 'FileBased'
 config.Data.unitsPerJob = 10
 config.Data.outLFNDirBase = '/store/user/%s/' % (getUsernameFromSiteDB())
 config.Data.publication = False
-config.Data.outputDatasetTag = 'btagHits_Ana'
+config.Data.outputDatasetTag = 'btagHits_Ana_v3'
 
-config.Site.storageSite = 'T2_CH_CSCS'
+config.Site.storageSite = 'T3_CH_PSI'
