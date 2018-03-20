@@ -21,8 +21,10 @@ process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
 from Configuration.AlCa.GlobalTag import GlobalTag
 # process.GlobalTag = GlobalTag(process.GlobalTag, '93X_upgrade2023_realistic_v2', '') #Doesnt work with pixel geom
 # process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run2_mc', '')  #For upgrade 2023 samples
-process.GlobalTag = GlobalTag(process.GlobalTag, '92X_upgrade2017_realistic_v10', '') #For upgrade2017
+# process.GlobalTag = GlobalTag(process.GlobalTag, '92X_upgrade2017_realistic_v10', '') #For upgrade2017
 # process.GlobalTag = GlobalTag(process.GlobalTag, '80X_mcRun2_asymptotic_2016_v3', '')   #For tt
+process.GlobalTag = GlobalTag(process.GlobalTag, '80X_mcRun2_asymptotic_v14', '')   #For ZprimeBB
+
 
 # initialize MessageLogger and output report
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
@@ -40,8 +42,8 @@ process.source = cms.Source("PoolSource",
     # fileNames = cms.untracked.vstring('root://cms-xrd-global.cern.ch//store/mc/RunIISpring16reHLT80/ZprimeToTTJet_M-4000_TuneCUETP8M1_13TeV-amcatnlo-pythia8/AODSIM/PUSpring16RAWAODSIM_reHLT_80X_mcRun2_asymptotic_v14-v1/90000/00E593DA-7139-E611-86E4-0CC47A4D99A4.root')
     fileNames = cms.untracked.vstring(
         # 'file:/afs/cern.ch/work/t/thaarres/public/bTag_ntracks/CMSSW_9_2_1/src/btag_ntracks/TprimeBToTH_M-3000_Width-30p_LH_TuneCUETP8M2T4_14TeV-madgraph-pythia8.root'
-        # 'root://cms-xrd-global.cern.ch//store/mc/RunIISpring16DR80/TT_TuneCUETP8M1_13TeV-powheg-pythia8/GEN-SIM-RECODEBUG/PUSpring16_RECODEBUG_80X_mcRun2_asymptotic_2016_v3_ext3-v1/20000/A265C275-3039-E611-85CC-002590D6004A.root'
-        'file:/afs/cern.ch/work/t/thaarres/public/TT_TuneCUETP8M2T4_13TeV-powheg-pythia8_GEN-SIM-RECODEBUG_92X_upgrade2017_realistic_v10_ext1-v2.root'
+        #'root://storage01.lcg.cscs.ch//pnfs/lcg.cscs.ch/cms/trivcat/store/user/thaarres/ZprimeBB/ZprimeBB_GEN_SIM_DIGI_RECO_v2/180319_095233/0000/B2G-RunIISpring16DR80-00005_148.root'
+        'file:GENSIMDIGIRECO.root'
     )
 )
 process.demo = cms.EDAnalyzer('HitAnalyzer',

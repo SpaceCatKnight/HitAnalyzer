@@ -100,7 +100,7 @@ private:
   edm::EDGetTokenT< edmNew::DetSetVector<SiPixelCluster>> clusterToken;
   edm::EDGetTokenT< reco::VertexCollection >              svToken;
   edm::EDGetTokenT< reco::VertexCollection >              pvToken;
-  // edm::EDGetTokenT< reco::TrackCollection >               trackToken;
+  edm::EDGetTokenT< reco::TrackCollection >               trackToken;
   edm::EDGetTokenT< reco::JetTagCollection >              csv2Token;
      
   //
@@ -147,6 +147,19 @@ private:
   std::vector<double>  genParticle_vx_eta ;
   std::vector<double>  genParticle_vx_phi ;
   std::vector<double>  genParticle_vx_r   ;
+  
+  int                  nTracks;
+  std::vector<double>  track_pt;
+  std::vector<double>  track_eta;
+  std::vector<double>  track_phi;
+  std::vector<double>  track_mass;
+  std::vector<double>  track_vx_x   ;
+  std::vector<double>  track_vx_y   ;
+  std::vector<double>  track_vx_z   ;
+  std::vector<double>  track_vx_eta ;
+  std::vector<double>  track_vx_phi ;
+  std::vector<double>  track_vx_r   ;
+  
   
        
   int                          nDetUnits;
@@ -249,6 +262,21 @@ HitAnalyzer::HitAnalyzer(const edm::ParameterSet& conf)
   tree->Branch( "genParticle_vx_phi" , &genParticle_vx_phi );
   tree->Branch( "genParticle_vx_r"   , &genParticle_vx_r   );
   
+  tree->Branch( "nTracks"      , &nTracks );
+  tree->Branch( "track_pt"     , &track_pt );
+  tree->Branch( "track_eta"    , &track_eta );
+  tree->Branch( "track_phi"    , &track_phi );
+  tree->Branch( "track_mass"   , &track_mass );
+  tree->Branch( "track_vx_x"   , &track_vx_x   );
+  tree->Branch( "track_vx_y"   , &track_vx_y   );
+  tree->Branch( "track_vx_z"   , &track_vx_z   );
+  tree->Branch( "track_vx_eta" , &track_vx_eta );
+  tree->Branch( "track_vx_phi" , &track_vx_phi );
+  tree->Branch( "track_vx_r"   , &track_vx_r   );
+  
+  
+  
+  
   
   
   
@@ -307,7 +335,7 @@ HitAnalyzer::HitAnalyzer(const edm::ParameterSet& conf)
   svToken        = consumes<reco::VertexCollection              > (edm::InputTag(labelSVs));
   pvToken        = consumes<reco::VertexCollection              > (edm::InputTag(labelPVs));
   csv2Token      = consumes<reco::JetTagCollection              > (edm::InputTag(labelCSV));
-  // trackToken     = consumes< reco::TrackCollection               >(edm::InputTag(labelTracks));
+  trackToken     = consumes< reco::TrackCollection               >(edm::InputTag(labelTracks));
 
 }
 
@@ -355,6 +383,7 @@ void
   Handle<reco::GenParticleCollection          > genPs    ; iEvent.getByToken( genPtoken    , genPs    );
   Handle<reco::JetTagCollection               > CSVs     ; iEvent.getByToken( csv2Token    , CSVs     );
   Handle<reco::VertexCollection               > SVs      ; iEvent.getByToken( svToken      , SVs      );
+  Handle<reco::TrackCollection                > tracks   ; iEvent.getByToken( trackToken   , tracks   );
   const reco::JetTagCollection & bTags = *(CSVs.product()); 
   
  
@@ -391,10 +420,6 @@ void
   // jet_vx_phi .push_back(jet->vertex().Coordinates().Phi());
   // jet_vx_r   .push_back(jet->vertex().Coordinates().R());
     
-    
-    
-
-
 
     
     // Loop opver gen particles
@@ -449,6 +474,16 @@ void
     
 
   nGenParticles = genParticle_pt.size();
+  
+  // Loop over tracks
+  for ( reco::TrackCollection::const_iterator track = tracks->begin(); track != tracks->end(); ++track ) {
+    TLorentzVector TVtrack;
+    // TVtrack.SetPtEtaPhiM(track->pt(),track->eta(),track->phi(),track->mass());
+    track_pt .push_back(track->pt());
+    track_eta.push_back(track->eta());
+    track_phi.push_back(track->phi());
+    // track_mass.push_back(track->mass());
+  }
   
 
   // Get vector of detunit ids and loop
@@ -681,6 +716,20 @@ void HitAnalyzer::reset( void ){
   detUnit_Z     .clear();
   detUnit_R     .clear();
   detUnit_Phi   .clear();
+  
+  
+  nTracks = 0.;
+  track_pt     .clear();
+  track_eta    .clear();
+  track_phi    .clear();
+  track_mass   .clear();
+  track_vx_x   .clear();
+  track_vx_y   .clear();
+  track_vx_z   .clear();
+  track_vx_eta .clear();
+  track_vx_phi .clear();
+  track_vx_r   .clear();
+  
   
 }
 
