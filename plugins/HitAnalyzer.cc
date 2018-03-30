@@ -79,7 +79,7 @@ public:
   ~HitAnalyzer();
 
   static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
-
+  //const std::vector<reco::Candidate> findDaughters(const reco::GenParticle *particle); 
 
 private:
   virtual void beginJob() override;
@@ -87,7 +87,6 @@ private:
   virtual void endJob() override;
   void reset( void );
   const reco::GenParticle* findMother(const reco::GenParticle *particle);
-      
       
   edm::ParameterSet conf_;
   edm::InputTag src_;
@@ -147,16 +146,27 @@ private:
   std::vector<double>  genParticle_vx_eta ;
   std::vector<double>  genParticle_vx_phi ;
   std::vector<double>  genParticle_vx_r   ;
+  std::vector<double>  genParticle_decayvx_x   ;
+  std::vector<double>  genParticle_decayvx_y   ;
+  std::vector<double>  genParticle_decayvx_z   ;
+  std::vector<double>  genParticle_decayvx_eta ;
+  std::vector<double>  genParticle_decayvx_phi ;
+  std::vector<double>  genParticle_decayvx_r   ;
   
+
   int                  nTracks;
   std::vector<double>  track_pt;
   std::vector<double>  track_eta;
   std::vector<double>  track_phi;
-  std::vector<double>  track_mass;
+  //std::vector<double>  track_mass;
+  std::vector<double>  track_charge   ;
+  std::vector<double>  track_px   ;
+  std::vector<double>  track_py   ;
+  std::vector<double>  track_pz ;
   std::vector<double>  track_vx_x   ;
   std::vector<double>  track_vx_y   ;
   std::vector<double>  track_vx_z   ;
-  std::vector<double>  track_vx_eta ;
+  //std::vector<double>  track_vx_eta ;
   std::vector<double>  track_vx_phi ;
   std::vector<double>  track_vx_r   ;
   
@@ -202,7 +212,7 @@ private:
   std::vector<std::vector<double>>  cluster_globaly;
   std::vector<std::vector<double>>  cluster_globalPhi;
   std::vector<std::vector<double>>  cluster_globalR;
-       
+  std::vector<std::vector<double>>  cluster_charge;     
        
   TTree *tree;
        
@@ -261,16 +271,26 @@ HitAnalyzer::HitAnalyzer(const edm::ParameterSet& conf)
   tree->Branch( "genParticle_vx_eta" , &genParticle_vx_eta );
   tree->Branch( "genParticle_vx_phi" , &genParticle_vx_phi );
   tree->Branch( "genParticle_vx_r"   , &genParticle_vx_r   );
+  tree->Branch( "genParticle_decayvx_x"   , &genParticle_decayvx_x   );
+  tree->Branch( "genParticle_decayvx_y"   , &genParticle_decayvx_y   );
+  tree->Branch( "genParticle_decayvx_z"   , &genParticle_decayvx_z   );
+  tree->Branch( "genParticle_decayvx_eta" , &genParticle_decayvx_eta );
+  tree->Branch( "genParticle_decayvx_phi" , &genParticle_decayvx_phi );
+  tree->Branch( "genParticle_decayvx_r"   , &genParticle_decayvx_r   );
   
   tree->Branch( "nTracks"      , &nTracks );
   tree->Branch( "track_pt"     , &track_pt );
   tree->Branch( "track_eta"    , &track_eta );
   tree->Branch( "track_phi"    , &track_phi );
-  tree->Branch( "track_mass"   , &track_mass );
+  //tree->Branch( "track_mass"   , &track_mass );
+  tree->Branch( "track_charge" , &track_charge)   ;
+  tree->Branch( "track_px"     , &track_px)   ;
+  tree->Branch( "track_py"     , &track_py)   ;
+  tree->Branch( "track_pz"     , &track_pz) ;
   tree->Branch( "track_vx_x"   , &track_vx_x   );
   tree->Branch( "track_vx_y"   , &track_vx_y   );
   tree->Branch( "track_vx_z"   , &track_vx_z   );
-  tree->Branch( "track_vx_eta" , &track_vx_eta );
+  //tree->Branch( "track_vx_eta" , &track_vx_eta );
   tree->Branch( "track_vx_phi" , &track_vx_phi );
   tree->Branch( "track_vx_r"   , &track_vx_r   );
   
@@ -316,7 +336,7 @@ HitAnalyzer::HitAnalyzer(const edm::ParameterSet& conf)
   tree->Branch( "cluster_globaly"   ,&cluster_globaly     );
   tree->Branch( "cluster_globalPhi" ,&cluster_globalPhi   );
   tree->Branch( "cluster_globalR"   ,&cluster_globalR     );
-  
+  tree->Branch( "cluster_charge"    ,&cluster_charge	  );
   
     
    
@@ -444,7 +464,64 @@ void
       || (idString.find("533") != std::string::npos)  || (idString.find("543") != std::string::npos) 
       || (idString.find("551") != std::string::npos)  || (idString.find("553") != std::string::npos) 
       || (idString.find("555") != std::string::npos)  || (idString.find("557") != std::string::npos) ){  
-   
+  	double decayvx_x = 0;
+	double decayvx_y = 0;
+	double decayvx_z = 0;
+	double decayvx_r = 0;
+	double decayvx_phi = 0;
+	double decayvx_eta = 0;
+
+	bool IdenticalDaughter = false;
+	unsigned int dau_identical = 0;
+	for (unsigned int dau=0; dau < gp->numberOfDaughters(); ++dau) {
+		if (gp->daughter(dau)->pdgId() == gp->pdgId()) {
+			IdenticalDaughter = true;
+			dau_identical = dau;
+			break;
+			}
+		}
+	
+	if (IdenticalDaughter){
+		int GenerationCounter = 0;
+		const reco::Candidate *tmp; 
+		tmp = gp->daughter(dau_identical);
+		LOOP:
+		IdenticalDaughter = false;
+		for (unsigned int dau=0; dau < tmp->numberOfDaughters(); ++dau) {
+			if (tmp->pdgId() == tmp->daughter(dau)->pdgId()) {
+				tmp = tmp->daughter(dau);
+				dau = 0;
+				IdenticalDaughter = true;
+				++GenerationCounter;
+				}		
+			}
+		if (IdenticalDaughter){
+			goto LOOP;
+			}
+		else {
+			for (unsigned int dau=0; dau < tmp->numberOfDaughters(); ++dau) {
+				decayvx_x = tmp->daughter(0)->vertex().x();
+				decayvx_y = tmp->daughter(0)->vertex().y();
+				decayvx_z = tmp->daughter(0)->vertex().z();
+				decayvx_r = tmp->daughter(0)->vertex().r();
+				decayvx_eta = tmp->daughter(0)->vertex().eta();
+				decayvx_phi = tmp->daughter(0)->vertex().phi();
+				break;
+				}
+			}
+		}
+	else {
+		for (unsigned int dau=0; dau < gp->numberOfDaughters(); ++dau) {
+			decayvx_x = gp->daughter(0)->vertex().x();
+			decayvx_y = gp->daughter(0)->vertex().y();
+			decayvx_z = gp->daughter(0)->vertex().z();
+			decayvx_r = gp->daughter(0)->vertex().r();
+			decayvx_eta = gp->daughter(0)->vertex().eta();
+			decayvx_phi = gp->daughter(0)->vertex().phi();
+			break;
+			}
+		}
+
         TLorentzVector genP;
         genP.SetPtEtaPhiM(gp->pt(),gp->eta(),gp->phi(),gp->mass());
         int  pdgId = gp->pdgId();
@@ -469,6 +546,14 @@ void
         genParticle_vx_eta .push_back(vx_eta );
         genParticle_vx_phi .push_back(vx_phi );
         genParticle_vx_r   .push_back(vx_r   );
+	genParticle_decayvx_x   .push_back(decayvx_x   );
+        genParticle_decayvx_y   .push_back(decayvx_y   );
+        genParticle_decayvx_z   .push_back(decayvx_z   );
+ 	genParticle_decayvx_r   .push_back(decayvx_r   );
+        genParticle_decayvx_eta   .push_back(decayvx_eta   );
+        genParticle_decayvx_phi   .push_back(decayvx_phi   );
+ 
+
     }
     }
     
@@ -481,10 +566,20 @@ void
     // TVtrack.SetPtEtaPhiM(track->pt(),track->eta(),track->phi(),track->mass());
     track_pt .push_back(track->pt());
     track_eta.push_back(track->eta());
-    track_phi.push_back(track->phi());
+    track_phi.push_back(track->phi()); 
+    track_px.push_back(track->px());
+    track_py.push_back(track->py());
+    track_pz.push_back(track->pz());
+    track_vx_x   .push_back(track->vertex().x() );
+    track_vx_y   .push_back(track->vertex().y() );
+    track_vx_z   .push_back(track->vertex().z() );
+    //track_vx_eta .push_back(track->vertex().eta());
+    track_vx_phi .push_back(track->vertex().phi());
+    track_vx_r   .push_back(track->vertex().r() );
+    track_charge .push_back(track->charge());
     // track_mass.push_back(track->mass());
   }
-  
+  nTracks = track_pt.size();
 
   // Get vector of detunit ids and loop
   const edmNew::DetSetVector<SiPixelCluster>& input = *clusters;
@@ -580,6 +675,7 @@ void
     std::vector<double>  _cluster_globaly;
     std::vector<double>  _cluster_globalPhi;
     std::vector<double>  _cluster_globalR;
+    std::vector<double>  _cluster_charge;
     int numberOfClusters = 0;
     for ( edmNew::DetSet<SiPixelCluster>::const_iterator clustIt = detUnit->begin(); clustIt != detUnit->end(); ++clustIt ) {
       numberOfClusters++;
@@ -593,6 +689,8 @@ void
       // float lx = lp.x(); // local cluster position in cm
       // float ly = lp.y();
 
+      double charge = clustIt->charge();
+	
       GlobalPoint clustgp = theGeomDet->surface().toGlobal( lp );
       double gZ = clustgp.z();  // global z
       double gX = clustgp.x();
@@ -608,7 +706,7 @@ void
       _cluster_globaly.push_back(gY);
       _cluster_globalPhi.push_back(gPhi);
       _cluster_globalR.push_back(gR);
-
+      _cluster_charge.push_back(charge);
     }
     if( numberOfClusters < 1.) continue;
     
@@ -642,7 +740,8 @@ void
     cluster_globaly  .push_back(_cluster_globaly);
     cluster_globalPhi.push_back(_cluster_globalPhi);
     cluster_globalR  .push_back(_cluster_globalR);
-    
+    cluster_charge   .push_back(_cluster_charge);
+
     numberOfDetUnits++;
   }
   nDetUnits = numberOfDetUnits;
@@ -682,7 +781,12 @@ void HitAnalyzer::reset( void ){
   genParticle_vx_eta.clear(); 
   genParticle_vx_phi.clear(); 
   genParticle_vx_r  .clear(); 
-  
+  genParticle_decayvx_x  .clear(); 
+  genParticle_decayvx_y  .clear(); 
+  genParticle_decayvx_z  .clear(); 
+  genParticle_decayvx_eta.clear(); 
+  genParticle_decayvx_phi.clear(); 
+  genParticle_decayvx_r  .clear(); 
   
   nClusters.clear();
   cluster_sizex.clear();
@@ -692,6 +796,7 @@ void HitAnalyzer::reset( void ){
   cluster_globaly.clear();
   cluster_globalPhi.clear();
   cluster_globalR.clear();
+  cluster_charge.clear();
   
   nDetUnits = 0.;
   // detUnit_detType.clear();
@@ -722,11 +827,15 @@ void HitAnalyzer::reset( void ){
   track_pt     .clear();
   track_eta    .clear();
   track_phi    .clear();
-  track_mass   .clear();
+  //track_mass   .clear();
+  track_px     .clear();
+  track_py     .clear();
+  track_pz     .clear();
+  track_charge .clear();
   track_vx_x   .clear();
   track_vx_y   .clear();
   track_vx_z   .clear();
-  track_vx_eta .clear();
+  //track_vx_eta .clear();
   track_vx_phi .clear();
   track_vx_r   .clear();
   
@@ -747,7 +856,34 @@ const reco::GenParticle *HitAnalyzer::findMother(const reco::GenParticle *partic
       return 0;
     }
 
-    
+// Find Daughters
+/*
+const std::vector<reco::Candidate> HitAnalyzer::findDaughters(const reco::GenParticle *particle) {
+	std::vector<reco::Candidate> daughters;
+	int pdgId = particle->pdgId();
+	bool identical = false;
+	unsigned int tmp;
+	if (particle->numberOfDaughters() == 0) {
+		return daughters;
+		}
+	for (unsigned int dau=0; dau < particle->numberOfDaughters(); ++dau ){
+		if (particle->daughter(dau)->pdgId() == pdgId) {
+			identical = true;
+			tmp = dau;
+			break;
+			}
+		}	
+	if (identical) {
+		return HitAnalyzer::findDaughters(particle->daughter(tmp));
+		}	
+	else {
+		for( unsigned int dau=0; dau < particle->numberOfDaughters(); ++dau ){
+			daughters.push_back(particle->daughter(dau));
+			}
+		return daughters;
+		}
+	}
+*/
               
 // ------------ method called once each job just before starting event loop  ------------
 void 

@@ -65,7 +65,7 @@ def ClusterMatch(file, dR, MomentumThreshold, HadronsNotQuarks=False, Plot=False
 		
 
 	Inputs:
-		file: 			string offull path to input file
+		file: 			full root TFile
 		dR: 			Delta R region around particle trajectory in which clusters should count as hit
 		Momentumthreshold:	momentum threshold for b-particles to be counted
 		Plot:			if set as True, the function will return a 3D-plot
@@ -108,7 +108,8 @@ def ClusterMatch(file, dR, MomentumThreshold, HadronsNotQuarks=False, Plot=False
 		res = 50 #number of points in trajectory
 
 	for i in xrange(N):
-    		if i % 500 == 0: print "Working on event " ,i
+    		if i % 50 == 0: print "Working on event " ,i
+		#if i > 10: break
     		tree.GetEntry(i)
     		for j in range(0,tree.nJets):
         		jVector = rt.TLorentzVector()
@@ -238,17 +239,17 @@ def ClusterMatch(file, dR, MomentumThreshold, HadronsNotQuarks=False, Plot=False
 if __name__ == '__main__':
 	
 	#file = rt.TFile("/afs/cern.ch/work/t/thaarres/public/bTag_ntracks/CMSSW_9_3_2/src/bTag_nHits/HitAnalyzer/TT_v5.root",'READ')
-	file = rt.TFile("/afs/cern.ch/work/t/thaarres/public/bTag_ntracks/CMSSW_9_3_2/src/bTag_nHits/HitAnalyzer/TT_v6.root",'READ')
+	#file = rt.TFile("/afs/cern.ch/work/t/thaarres/public/bTag_ntracks/CMSSW_9_3_2/src/bTag_nHits/HitAnalyzer/TT_v6.root",'READ')
+	file = rt.TFile("/afs/cern.ch/user/m/msommerh/CMSSW_9_3_2/src/bTag/HitAnalyzer/flatTuple.root",'READ')
 
 	dR = 0.1 #DeltaR threshold for counting clusters
 	MomentumThreshold = 350
 
-	HitClusters =  ClusterMatch(file, dR, MomentumThreshold, HadronsNotQuarks=False, Plot=False, Save=False, dR_dist = False)
+	HitClusters =  ClusterMatch(file, dR, MomentumThreshold, HadronsNotQuarks=True, Plot=True, Save=False, dR_dist = False)
 
-	#with open("HitClusterDR0.1onb-quarks.pkl",) as f:	#take data from file instead of running entire function
+	#with open("HitClusterDR0.1onB-hadrons.pkl",) as f:	#take data from file instead of running entire function
 	#	HitClusters = pickle.load(f)
 	
-	'''
 	#Count hits per layer for each particle
 	
 	tree = file.Get("demo/tree")
@@ -260,6 +261,21 @@ if __name__ == '__main__':
 
 	plt.figure("Hits per layer")
 	plt.clf()
+	HitsPerLayer = np.zeros(5)
+	ClustersX, ClustersY, ClustersZ = [], [], []
+	for n,particle in enumerate(HitClusters):
+		if n > 0: break
+		for cluster in particle:
+			print "event nr", cluster[0][0], ", particle nr.", cluster[0][1]
+			HitsPerLayer[cluster[0][2]] +=1
+			ClustersX.append(cluster[1])
+			ClustersY.append(cluster[2])
+			ClustersZ.append(cluster[3])
+	plt.plot(range(1,len(HitsPerLayer)),HitsPerLayer[1:],color='b')
+	print "ClustersX:", ClustersX
+	print "ClustersY:", ClustersY
+	print "ClustersZ:", ClustersZ
+	'''
 	for n,particle in enumerate(HitClusters):	
 		HitsPerLayer = np.zeros(5)
 	for cluster in particle:
@@ -268,6 +284,7 @@ if __name__ == '__main__':
 		tree.GetEntry(nEvent)
 		eta, phi, pt = tree.genParticle_eta[nParticle], tree.genParticle_phi[nParticle], tree.genParticle_pt[nParticle]
 		plt.plot(range(1,len(HitsPerLayer)),HitsPerLayer[1:],color=color[n],label=r'$\eta$ ='+str(round(eta,2))+r', $\phi$ ='+str(round(phi,2))+r', Pt ='+str(round(pt,2)))
+	'''
 	plt.plot([1,1],[0,yLim],'k:')
 	plt.plot([2,2],[0,yLim],'k:')
 	plt.plot([3,3],[0,yLim],'k:')
@@ -275,17 +292,11 @@ if __name__ == '__main__':
 	plt.ylim(0,yLim)
 	plt.title(r'$\Delta$R < '+str(dR))
 	plt.xlabel("layer")
-	plt.ylabel("number of hits")
-	plt.legend(loc=9,ncol=3, prop={'size':8})
-	plt.savefig("HitsPerLayer1.png")
+	plt.ylabel("number of clusters")
+	#plt.legend(loc=9,ncol=3, prop={'size':8})
+	plt.savefig("HitsPerLayer1B.png")
 	plt.show()
-	'''
-
-
-
-
-
-
+	
 
 
 
