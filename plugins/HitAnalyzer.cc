@@ -464,7 +464,9 @@ void
       || (idString.find("533") != std::string::npos)  || (idString.find("543") != std::string::npos) 
       || (idString.find("551") != std::string::npos)  || (idString.find("553") != std::string::npos) 
       || (idString.find("555") != std::string::npos)  || (idString.find("557") != std::string::npos) ){  
-  	double decayvx_x = 0;
+  	
+	std::vector<const reco::Candidate*> genParticle_Daughters;
+	double decayvx_x = 0;
 	double decayvx_y = 0;
 	double decayvx_z = 0;
 	double decayvx_r = 0;
@@ -473,15 +475,14 @@ void
 
 	bool IdenticalDaughter = false;
 	unsigned int dau_identical = 0;
-	for (unsigned int dau=0; dau < gp->numberOfDaughters(); ++dau) {
+	for (unsigned int dau=0; dau < gp->numberOfDaughters(); ++dau) {	//check if daughter identical to particle
 		if (gp->daughter(dau)->pdgId() == gp->pdgId()) {
 			IdenticalDaughter = true;
 			dau_identical = dau;
 			break;
 			}
 		}
-	
-	if (IdenticalDaughter){
+	if (IdenticalDaughter){			//iterate over generations until daughter differs from particle
 		int GenerationCounter = 0;
 		const reco::Candidate *tmp; 
 		tmp = gp->daughter(dau_identical);
@@ -500,27 +501,26 @@ void
 			}
 		else {
 			for (unsigned int dau=0; dau < tmp->numberOfDaughters(); ++dau) {
-				decayvx_x = tmp->daughter(0)->vertex().x();
-				decayvx_y = tmp->daughter(0)->vertex().y();
-				decayvx_z = tmp->daughter(0)->vertex().z();
-				decayvx_r = tmp->daughter(0)->vertex().r();
-				decayvx_eta = tmp->daughter(0)->vertex().eta();
-				decayvx_phi = tmp->daughter(0)->vertex().phi();
-				break;
+				genParticle_Daughters.push_back(tmp->daughter(dau));	
 				}
 			}
 		}
 	else {
 		for (unsigned int dau=0; dau < gp->numberOfDaughters(); ++dau) {
-			decayvx_x = gp->daughter(0)->vertex().x();
-			decayvx_y = gp->daughter(0)->vertex().y();
-			decayvx_z = gp->daughter(0)->vertex().z();
-			decayvx_r = gp->daughter(0)->vertex().r();
-			decayvx_eta = gp->daughter(0)->vertex().eta();
-			decayvx_phi = gp->daughter(0)->vertex().phi();
-			break;
+			genParticle_Daughters.push_back(gp->daughter(dau));			
 			}
 		}
+	for (unsigned int dau=0; dau < genParticle_Daughters.size(); ++dau) {	//loop over the actual daughters
+		decayvx_x = genParticle_Daughters[dau]->vertex().x();
+		decayvx_y = genParticle_Daughters[dau]->vertex().y();
+		decayvx_z = genParticle_Daughters[dau]->vertex().z();
+		decayvx_r = genParticle_Daughters[dau]->vertex().r();
+		decayvx_phi = genParticle_Daughters[dau]->vertex().phi();
+		decayvx_eta = genParticle_Daughters[dau]->vertex().eta();
+		break;								//break after first daughter since their vertices are the same
+		}
+	
+	std::cout<<"decayvy_x 0 "<<decayvx_x<<std::endl;
 
         TLorentzVector genP;
         genP.SetPtEtaPhiM(gp->pt(),gp->eta(),gp->phi(),gp->mass());
